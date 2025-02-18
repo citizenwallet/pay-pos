@@ -1,5 +1,5 @@
 import 'package:pay_pos/services/db/db.dart';
-import 'package:pay_pos/services/db/app/communities.dart';
+import 'package:pay_pos/services/db/app/preference.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDBService extends DBService {
@@ -11,20 +11,20 @@ class AppDBService extends DBService {
 
   AppDBService._internal();
 
-  late CommunityTable communities;
+  late PreferenceTable preferences;
 
   @override
   Future<Database> openDB(String path) async {
     final options = OpenDatabaseOptions(
       onConfigure: (db) async {
-        communities = CommunityTable(db);
+        preferences = PreferenceTable(db);
       },
       onCreate: (db, version) async {
-        await communities.create(db);
+        await preferences.create(db);
         return;
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        await communities.migrate(db, oldVersion, newVersion);
+        await preferences.migrate(db, oldVersion, newVersion);
         return;
       },
       version: 1,
@@ -37,5 +37,4 @@ class AppDBService extends DBService {
 
     return db;
   }
-  
 }
