@@ -1,13 +1,13 @@
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/state/community.dart';
+import 'package:pay_pos/widgets/short_button.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pay_pos/state/onboarding.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
-import 'package:pay_pos/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -18,24 +18,21 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  late OnboardingState _onboardingState;
-  late CommunityState _communityState;
-  late WalletState _walletState;
+  OnboardingState? _onboardingState;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_onboardingState == null) {
       _onboardingState = context.read<OnboardingState>();
-      _communityState = context.read<CommunityState>();
-      _walletState = context.read<WalletState>();
       onLoad();
-    });
+    }
   }
 
   void onLoad() async {
-    await _communityState.fetchCommunity();
+    await _onboardingState?.fetchPosId();
+    print('posId screen: ${_onboardingState?.posId}');
   }
 
   @override
@@ -43,165 +40,155 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _dismissKeyboard() {
-    FocusScope.of(context).unfocus();
-  }
-
-  void handleConfirm() async {
-    final addressFromCreate = await _walletState.createWallet();
-    final addressFromOpen = await _walletState.openWallet();
-
-    debugPrint('addressFromCreate: $addressFromCreate');
-    debugPrint('addressFromOpen: $addressFromOpen');
-
-    // final exists = await _walletState.createAccount();
-
-    // debugPrint('account exists: $exists');
-    // debugPrint('finish');
-
-    if (!mounted) return;
-
-    final navigator = GoRouter.of(context);
-    navigator.replace('/$addressFromOpen');
-  }
-
-  void handlePhoneNumberChange(String phoneNumber) {
-    _onboardingState.formatPhoneNumber(phoneNumber);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
-
-    final community = context.select((CommunityState state) => state.community);
-
-    final phoneNumberController =
-        context.read<OnboardingState>().phoneNumberController;
-
-    final touched = context.select((OnboardingState state) => state.touched);
-    final regionCode =
-        context.select((OnboardingState state) => state.regionCode);
-
+    print(_onboardingState?.posId);
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      child: GestureDetector(
-        onTap: _dismissKeyboard,
-        behavior: HitTestBehavior.opaque,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                // Top content in an Expanded to push it to the center
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Logo
-                      CoinLogo(size: 140),
-
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        community?.community.name ?? 'Loading...',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Subtitle
-                      Text(
-                        community?.community.description ?? 'Loading...',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: textMutedColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Bottom content
-                Column(
-                  mainAxisSize: MainAxisSize.min,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              // Top content in an Expanded to push it to the center
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Email Input
-                    CustomTextField(
-                      controller: phoneNumberController,
-                      placeholder: '+32475123456',
-                      autofocus: true,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: !touched
-                              ? mutedColor
-                              : touched && regionCode != null
-                                  ? primaryColor
-                                  : warningColor,
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // QR Code
+                        QrImageView(
+                          data: _onboardingState?.posId != null
+                              ? "${dotenv.env['BASE_URL']}/dashboard/pos/activate/${_onboardingState!.posId}"
+                              : "",
+                          version: QrVersions.auto,
+                          size: 250,
+                          gapless: false,
+                          errorCorrectionLevel: QrErrorCorrectLevel.H,
                         ),
-                      ),
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: touched && regionCode != null
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        letterSpacing: 2,
-                      ),
-                      placeholderStyle: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w500,
-                        color: textMutedColor,
-                        letterSpacing: 2,
-                      ),
-                      prefix: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: regionCode != null
-                            ? CountryFlag.fromCountryCode(
-                                regionCode,
-                                shape: const Circle(),
-                                height: 40,
-                                width: 40,
-                              )
-                            : SizedBox(
-                                height: 40,
-                                width: 40,
-                                child: Icon(
-                                  CupertinoIcons.phone,
-                                  color: iconColor,
-                                ),
-                              ),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      onChanged: handlePhoneNumberChange,
-                    ),
-                    const SizedBox(height: 16),
 
-                    // Confirm Button
-                    WideButton(
-                      disabled: regionCode == null,
-                      onPressed:
-                          regionCode != null ? () => handleConfirm() : null,
-                      child: Text(
-                        'Confirm',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: CupertinoColors.white,
+                        // Logo on top of QR
+                        Positioned(
+                          child: Container(
+                            width: 85,
+                            height: 85,
+                            decoration: BoxDecoration(
+                              color: theme.scaffoldBackgroundColor,
+                            ),
+                            alignment: Alignment.center,
+                            child: CoinLogo(size: 70),
+                          ),
                         ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Title
+                    Text(
+                      'Save to activate',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
                       ),
                     ),
-                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 20),
+
+                    // Subtitle
+                    Text(
+                      "or",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    ShortButton(
+                      onPressed: () =>
+                          "${dotenv.env['BASE_URL']}/dashboard/pos/activate/${_onboardingState?.posId}",
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Share terminal id',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: CupertinoColors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            CupertinoIcons.share,
+                            color: CupertinoColors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 150),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              // Bottom content
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Business Dashboard Button
+                  WideButton(
+                    onPressed: () =>
+                        "${dotenv.env['BASE_URL']}/dashboard/pos/activate/${_onboardingState?.posId}",
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Business Dashboard',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          CupertinoIcons.arrow_up_right_square,
+                          color: CupertinoColors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  GestureDetector(
+                    onTap: () {
+                      print("Demo Mode Attempted!");
+                    },
+                    child: Text(
+                      'Demo Mode',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: CupertinoColors.systemBlue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ],
           ),
         ),
       ),

@@ -8,37 +8,37 @@ class PlacesService {
   final APIService apiService =
       APIService(baseURL: dotenv.env['CHECKOUT_API_BASE_URL'] ?? '');
 
-  Future<List<Place>> getAllPlaces() async {
-    try {
-      final response = await apiService.get(url: '/places');
+  // Future<List<Place>> getAllPlaces() async {
+  //   try {
+  //     final response = await apiService.get(url: '/places');
 
-      final Map<String, dynamic> data = response;
-      final List<dynamic> placesApiResponse = data['places'];
-      /* Example API Response:
-        [
-            {
-                "id": 1,
-                "name": "Commons Hub Fridge", 
-                "slug": "fridge",
-                "image": null,
-                "accounts": [
-                    "0x8b120C5756b86dE2cdeBf53C08D8bDD36f897c03"
-                ],
-                "description": null
-            }
-        ]
-        */
+  //     final Map<String, dynamic> data = response;
+  //     final List<dynamic> placesApiResponse = data['places'];
+  //     /* Example API Response:
+  //       [
+  //           {
+  //               "id": 1,
+  //               "name": "Commons Hub Fridge",
+  //               "slug": "fridge",
+  //               "image": null,
+  //               "accounts": [
+  //                   "0x8b120C5756b86dE2cdeBf53C08D8bDD36f897c03"
+  //               ],
+  //               "description": null
+  //           }
+  //       ]
+  //       */
 
-      return placesApiResponse.map((json) => Place.fromJson(json)).toList();
-    } catch (e, s) {
-      debugPrint('Error getting places: ${e.toString()}');
-      debugPrint('Stack trace: ${s.toString()}');
-      rethrow;
-    }
-  }
+  //     return placesApiResponse.map((json) => Place.fromJson(json)).toList();
+  //   } catch (e, s) {
+  //     debugPrint('Error getting places: ${e.toString()}');
+  //     debugPrint('Stack trace: ${s.toString()}');
+  //     rethrow;
+  //   }
+  // }
 
-  Future<PlaceWithMenu> getPlaceAndMenu(String slug) async {
-    final response = await apiService.get(url: '/places/$slug/menu');
+  Future<PlaceWithMenu> getPlaceandMenu(String placeId) async {
+    final response = await apiService.get(url: '/places/$placeId/menu');
 
     /*
     {
@@ -83,8 +83,6 @@ class PlacesService {
         ]
     }
     */
-
-    print(response);
 
     final Map<String, dynamic> data = response;
     return PlaceWithMenu.fromJson(data);

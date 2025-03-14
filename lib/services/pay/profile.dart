@@ -6,7 +6,7 @@ import 'package:pay_pos/services/api/api.dart';
 class ProfileService {
   final APIService apiService =
       APIService(baseURL: dotenv.env['CHECKOUT_API_BASE_URL'] ?? '');
-  String account;
+  final String account;
 
   ProfileService({required this.account});
 

@@ -1,48 +1,27 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
+import 'package:web3dart/credentials.dart';
 
 class OnboardingState with ChangeNotifier {
-  // instantiate services here
+  String? posId;
 
-  // private variables here
-  final TextEditingController _phoneNumberController = TextEditingController(
-    text: dotenv.get('DEFAULT_PHONE_COUNTRY_CODE'),
-  );
-
-  TextEditingController get phoneNumberController => _phoneNumberController;
-
-  // constructor here
-
-  bool _mounted = true;
-  void safeNotifyListeners() {
-    if (_mounted) {
-      notifyListeners();
-    }
+  Future<String> generatePosId() async {
+    final random = Random.secure();
+    final randomKey = EthPrivateKey.createRandom(random);
+    return randomKey.address.hexEip55;
   }
 
-  @override
-  void dispose() {
-    _mounted = false;
-    super.dispose();
-  }
 
-  // state variables here
-  bool touched = false;
-  String? regionCode;
-
-  // state methods here
-  Future<void> formatPhoneNumber(String phoneNumber) async {
+  Future<void> fetchPosId() async {
     try {
-      final result = await parse(phoneNumber);
-
-      regionCode = result['region_code'];
+      posId = await generatePosId();
     } catch (e) {
-      regionCode = null;
+      posId = null;
     }
 
-    touched = true;
-
-    safeNotifyListeners();
+    notifyListeners();
   }
 }

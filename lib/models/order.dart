@@ -52,19 +52,22 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'],
-      createdAt: DateTime.parse(json['created_at']),
+      id: json['id'] ?? 0,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'])
           : null,
-      total: json['total'].toDouble() / 100,
-      due: json['due'].toDouble() / 100,
-      placeId: json['place_id'],
-      items: (json['items'] as List)
-          .map((item) => OrderItem.fromJson(item))
-          .toList(),
-      status: _parseOrderStatus(json['status']),
-      description: json['description'],
+      total: (json['total'] ?? 0).toDouble() / 100,
+      due: (json['due'] ?? 0).toDouble() / 100,
+      placeId: json['place_id'] ?? 0,
+      items: (json['items'] as List?)
+              ?.map((item) => OrderItem.fromJson(item))
+              .toList() ??
+          [],
+      status: _parseOrderStatus(json['status'] ?? ''),
+      description: json['description'] ?? '',
       txHash: json['tx_hash'],
       type: _parseOrderType(json['type']),
       account: json['account'] != null
@@ -72,6 +75,29 @@ class Order {
           : null,
     );
   }
+
+  // factory Order.fromJson(Map<String, dynamic> json) {
+  //   return Order(
+  //     id: json['id'],
+  //     createdAt: DateTime.parse(json['created_at']),
+  //     completedAt: json['completed_at'] != null
+  //         ? DateTime.parse(json['completed_at'])
+  //         : null,
+  //     total: json['total'].toDouble() / 100,
+  //     due: json['due'].toDouble() / 100,
+  //     placeId: json['place_id'],
+  //     items: (json['items'] as List)
+  //         .map((item) => OrderItem.fromJson(item))
+  //         .toList(),
+  //     status: _parseOrderStatus(json['status']),
+  //     description: json['description'],
+  //     txHash: json['tx_hash'],
+  //     type: _parseOrderType(json['type']),
+  //     account: json['account'] != null
+  //         ? EthereumAddress.fromHex(json['account'])
+  //         : null,
+  //   );
+  // }
 
   static OrderStatus _parseOrderStatus(String status) {
     return OrderStatus.values.firstWhere(

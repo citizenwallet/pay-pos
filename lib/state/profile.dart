@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pay_pos/models/user.dart';
+import 'package:pay_pos/services/pay/profile.dart';
 import 'package:pay_pos/services/photos/photos.dart';
 import 'package:pay_pos/services/wallet/contracts/profile.dart';
 import 'package:pay_pos/services/wallet/wallet.dart';
@@ -9,13 +11,17 @@ class ProfileState with ChangeNotifier {
   // instantiate services here
   final WalletService _walletService = WalletService();
   final PhotosService _photosService = PhotosService();
+  ProfileService myProfileService;
+  User? userProfile;
 
   // private variables here
   bool _pauseProfileCreation = false;
-  final String _account;
+  final String account;
 
   // constructor here
-  ProfileState(this._account);
+  ProfileState({
+    required this.account,
+  }) : myProfileService = ProfileService(account: account);
 
   bool _mounted = true;
   void safeNotifyListeners() {
@@ -66,7 +72,7 @@ class ProfileState with ChangeNotifier {
       error = false;
       safeNotifyListeners();
 
-      final existingProfile = await _walletService.getProfile(_account);
+      final existingProfile = await _walletService.getProfile(account);
 
       if (existingProfile != null) {
         profile = existingProfile;
@@ -126,6 +132,28 @@ class ProfileState with ChangeNotifier {
     } catch (e, s) {
       debugPrint('giveProfileUsername error: $e, $s');
       error = true;
+    } finally {
+      loading = false;
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> getProfile() async {
+    loading = true;
+    error = false;
+    safeNotifyListeners();
+
+    try {
+      final profile = await myProfileService.getProfile();
+      debugPrint('profile: $profile');
+      userProfile = profile;
+
+      safeNotifyListeners();
+    } catch (e, s) {
+      debugPrint('Error getting profile of with user: $e');
+      debugPrint('Stack trace: $s');
+      error = true;
+      safeNotifyListeners();
     } finally {
       loading = false;
       safeNotifyListeners();
