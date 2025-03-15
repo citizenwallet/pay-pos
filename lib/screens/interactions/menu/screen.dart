@@ -68,7 +68,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   void _onPayPressed() {
     final navigator = GoRouter.of(context);
     print("pushing to pay");
-    navigator.push('/${widget.placeId}/true/pay');
+    navigator.push('/${widget.placeId}/menu/pay');
   }
 
   @override
@@ -161,9 +161,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     final placeMenu = context.watch<PlaceOrderState>().placeMenu;
 
     final checkoutState = context.watch<CheckoutState>();
-    // final place = context.watch<PlaceOrderState>().place?.place;
     final menuItems = context.watch<PlaceOrderState>().place?.items ?? [];
-    // final profile = context.watch<PlaceOrderState>().place?.profile;
     final checkout = checkoutState.checkout;
     final checkoutTotal = checkout.total;
 
@@ -172,14 +170,6 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            // ChatHeader(
-            //   imageUrl: profile?.imageUrl ?? place?.imageUrl ?? '',
-            //   placeName: profile?.name ?? place?.name ?? '',
-            //   placeDescription:
-            //       profile?.description ?? place?.description ?? '',
-            //   onTapLeading: goBack,
-            // ),
-
             CategoryScroll(
               categories: placeMenu?.categories ?? [],
               tabScrollController: tabScrollController,

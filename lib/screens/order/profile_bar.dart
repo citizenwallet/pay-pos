@@ -5,7 +5,6 @@ import 'package:pay_pos/models/user.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/profile_circle.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class ProfileBar extends StatefulWidget {
@@ -38,7 +37,7 @@ class _ProfileBarState extends State<ProfileBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
+    CupertinoTheme.of(context);
 
     final walletState = context.watch<WalletState>();
     final balance = walletState.wallet?.formattedBalance.toString();

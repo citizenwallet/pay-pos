@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pay_pos/widgets/short_button.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pay_pos/state/onboarding.dart';
-import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
@@ -32,7 +30,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void onLoad() async {
     await _onboardingState?.fetchPosId();
-    print('posId screen: ${_onboardingState?.posId}');
   }
 
   @override
@@ -43,7 +40,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
-    print(_onboardingState?.posId);
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       child: SafeArea(

@@ -6,8 +6,8 @@ import 'package:pay_pos/models/place.dart';
 class CheckoutState with ChangeNotifier {
   Checkout checkout;
   final Place? place;
-  final String _account;
-  final String _slug;
+  String _account;
+  String _slug;
 
   CheckoutState({
     required account,
@@ -52,6 +52,12 @@ class CheckoutState with ChangeNotifier {
   void increaseItem(MenuItem menuItem) {
     final newCheckout = checkout.increaseItem(menuItem);
     checkout = newCheckout;
+    safeNotifyListeners();
+  }
+
+  void updateAccountAndSlug(String account, String slug) {
+    _account = account;
+    _slug = slug;
     safeNotifyListeners();
   }
 }

@@ -3,7 +3,6 @@ import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/orders.dart';
-import 'package:pay_pos/services/pay/places.dart';
 
 class OrdersState with ChangeNotifier {
   // instantiate services here

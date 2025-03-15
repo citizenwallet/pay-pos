@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:pay_pos/models/user.dart';
 import 'package:pay_pos/services/api/api.dart';
 
 class POSService {
@@ -14,12 +13,12 @@ class POSService {
 
   Future<String> checkIdActivation(String id) async {
     try {
-      final response = await apiService.get(url: '/pos/activated?posId=13');
+      final response = await apiService.get(url: '/pos/activated?posId=$posId');
 
       final Map<String, dynamic> data = response;
 
       final placeId = data['place_id'];
-      print(placeId);
+
       return placeId;
     } catch (e, s) {
       debugPrint('Failed to fetch pos id: $e');

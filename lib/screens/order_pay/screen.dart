@@ -1,10 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
-import 'package:pay_pos/widgets/short_button.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:pay_pos/state/onboarding.dart';
-import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
@@ -13,7 +8,7 @@ import 'package:pay_pos/state/checkout.dart';
 import 'package:pay_pos/screens/interactions/menu/selected_items.dart';
 
 class OrderPayScreen extends StatefulWidget {
-  String isMenu = "false";
+  bool isMenu = false;
 
   OrderPayScreen({
     super.key,
@@ -25,20 +20,6 @@ class OrderPayScreen extends StatefulWidget {
 }
 
 class _OrderPayScreenState extends State<OrderPayScreen> {
-  // OnboardingState? _onboardingState;
-
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-
-  //   if (_onboardingState == null) {
-  //     _onboardingState = context.read<OnboardingState>();
-  //     onLoad();
-  //   }
-  // }
-
-  // void onLoad() async {
-  //   await _onboardingState?.fetchPosId();
-  // }
 
   void goBack() {
     Navigator.pop(context);
@@ -52,7 +33,9 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
+
     final checkoutState = context.watch<CheckoutState>();
+
     final checkout = checkoutState.checkout;
 
     return CupertinoPageScaffold(
@@ -65,7 +48,6 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
               // Top content in an Expanded to push it to the center
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Stack(
@@ -95,17 +77,19 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 30),
 
-                    // Title
-                    Center(
-                      child: Balance(
-                        balance: checkout.total.toStringAsFixed(2),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Balance(
+                          balance: checkout.total.toStringAsFixed(2),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 30),
 
-                    const SizedBox(height: 20),
-                    widget.isMenu == "false"
+                    !widget.isMenu
                         ? Text(
                             "This is a description of the order.",
                             style: const TextStyle(
@@ -116,25 +100,30 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                             textAlign: TextAlign.center,
                           )
                         : Container(
-                            height: 300, // Adjust the height as needed
+                            height: 280,
                             padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: CupertinoColors
-                                  .systemGrey6, // Background color
+                              color: CupertinoColors.systemGrey6,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: SingleChildScrollView(
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: 0,
-                                  maxHeight: 800,
-                                ),
-                                child: SelectedItems(
-                                  checkoutState: checkoutState,
-                                ),
-                              ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: IntrinsicHeight(
+                                      child: SelectedItems(
+                                        checkoutState: checkoutState,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
+
                     // const SizedBox(height: 20),
 
                     const SizedBox(height: 100),

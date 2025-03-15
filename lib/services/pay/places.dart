@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:pay_pos/models/place.dart';
 import 'package:pay_pos/services/api/api.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 

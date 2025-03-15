@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pay_pos/models/checkout.dart';
 import 'package:pay_pos/models/checkout_item.dart';
 import 'package:pay_pos/state/checkout.dart';
 import 'package:pay_pos/theme/colors.dart';

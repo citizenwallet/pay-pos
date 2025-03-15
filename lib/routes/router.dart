@@ -17,7 +17,6 @@ GoRouter createRouter(
   GlobalKey<NavigatorState> rootNavigatorKey,
   GlobalKey<NavigatorState> shellNavigatorKey,
   List<NavigatorObserver> observers, {
-    
   String? account,
   String? slug,
   String? placeId = "2",
@@ -65,28 +64,13 @@ GoRouter createRouter(
               name: 'OrderPay',
               path: '/:placeId/:type/pay',
               builder: (context, state) {
+                final type = state.pathParameters['type'];
                 return OrderPayScreen(
-                  isMenu: state.pathParameters['type']!,
+                  isMenu: type == 'menu',
                 );
               },
             ),
           ],
         ),
-        // ShellRoute(
-        //   builder: (context, state, child) =>
-        //       provideState(context, state, child),
-        //   routes: [
-        //     GoRoute(
-        //       name: 'InteractionWithPlace',
-        //       path: '/:account/place/:slug',
-        //       builder: (context, state) {
-        //         final myAddress = state.pathParameters['account']!;
-        //         final slug = state.pathParameters['slug']!;
-
-        //         return PlaceMenuScreen();
-        //       },
-        //     ),
-        //   ],
-        // ),
       ],
     );
