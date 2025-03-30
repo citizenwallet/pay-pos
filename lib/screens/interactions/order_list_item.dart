@@ -1,19 +1,24 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pay_pos/models/menu_item.dart';
-
-import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/utils/date.dart';
+
+//models
+import 'package:pay_pos/models/menu_item.dart';
+import 'package:pay_pos/models/order.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 class OrderListItem extends StatelessWidget {
   final Order order;
   final Map<int, MenuItem> mappedItems;
+  final double width;
 
   const OrderListItem({
     super.key,
     required this.order,
     required this.mappedItems,
+    required this.width,
   });
 
   @override
@@ -45,14 +50,27 @@ class OrderListItem extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OrderId(orderId: order.id),
-        SizedBox(height: 4),
-        PaymentMethodBadge(paymentMode: order.type),
-        SizedBox(height: 4),
-        Items(
-          items: order.items,
-          mappedItems: mappedItems,
+        OrderId(
+          orderId: order.id,
         ),
+        SizedBox(
+          height: 4,
+        ),
+        PaymentMethodBadge(
+          paymentMode: order.type,
+        ),
+        SizedBox(
+          height: 4,
+        ),
+        (order.items.isNotEmpty)
+            ? Items(
+                items: order.items,
+                mappedItems: mappedItems,
+              )
+            : OrderDescription(
+                description: order.description,
+                width: width,
+              ),
       ],
     );
   }
@@ -62,9 +80,15 @@ class OrderListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Amount(amount: order.total),
-        SizedBox(height: 4),
-        TimeAgo(createdAt: order.createdAt),
+        Amount(
+          amount: order.total,
+        ),
+        SizedBox(
+          height: 4,
+        ),
+        TimeAgo(
+          createdAt: order.createdAt,
+        ),
       ],
     );
   }
@@ -74,7 +98,11 @@ class Items extends StatelessWidget {
   final List<OrderItem> items;
   final Map<int, MenuItem> mappedItems;
 
-  const Items({super.key, required this.items, required this.mappedItems});
+  const Items({
+    super.key,
+    required this.items,
+    required this.mappedItems,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +161,57 @@ class OrderId extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
+  }
+}
+
+class OrderDescription extends StatelessWidget {
+  final String? description;
+  final double? width;
+
+  const OrderDescription({
+    super.key,
+    this.description,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return description!.isNotEmpty
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Description',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 4),
+              SizedBox(
+                width: width,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Text(
+                        description!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: textMutedColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )
+        : const SizedBox.shrink();
   }
 }
 

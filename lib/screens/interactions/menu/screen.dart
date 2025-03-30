@@ -1,15 +1,17 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+//states
+import 'package:pay_pos/state/orders.dart';
+import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/checkout.dart';
 
+//widgets
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'footer.dart';
 import 'menu_list_item.dart';
 import 'catergory_scroll.dart';
@@ -43,6 +45,8 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   String _currentVisibleCategory = '';
   Timer? _scrollThrottle;
 
+  late OrdersState _ordersState;
+
   static const double headerHeight = _StickyHeaderDelegate.height;
   static const double detectionSensitivity = 0.5; // 0.5 = half header height
 
@@ -51,33 +55,43 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   @override
   void initState() {
     super.initState();
+    _ordersState = context.read<OrdersState>();
 
     _menuScrollController.addListener(_throttledOnScroll);
 
     tabPositionsListener.itemPositions.addListener(_onItemPositionsChange);
+
+    _ordersState.isPollingEnabled = false;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 
   void onLoad() {
     final placeMenu = context.read<PlaceOrderState>().placeMenu;
+
     if (placeMenu == null) return;
     _currentVisibleCategory = placeMenu.categories[0];
   }
 
-  void _onPayPressed() {
-    final navigator = GoRouter.of(context);
-    print("pushing to pay");
-    navigator.push('/${widget.placeId}/menu/pay');
+  Future<void> _onPayPressed(List<Map<String, dynamic>> items,
+      String description, double total, String account) async {
+    await _ordersState.createOrder(
+      items: items,
+      description: description,
+      total: total,
+      account: account,
+    );
+
+    context.go('/${widget.placeId}/menu/pay');
   }
 
   @override
   void dispose() {
     tabPositionsListener.itemPositions.removeListener(_onItemPositionsChange);
-
     _scrollThrottle?.cancel();
     _menuScrollController.removeListener(_throttledOnScroll);
     _menuScrollController.dispose();
+    _ordersState.isPollingEnabled = true;
 
     super.dispose();
   }
@@ -87,9 +101,10 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   }
 
   void _onScroll() {
-    // TODO: see if there is a better way to access these state variables
     final categoryKeys = context.read<PlaceOrderState>().categoryKeys;
+
     final placeMenu = context.read<PlaceOrderState>().placeMenu;
+
     if (placeMenu == null) return;
 
     final headerContexts =
@@ -118,7 +133,9 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
             _selectedIndex = i;
           });
           tabScrollController.scrollTo(
-              index: i, duration: const Duration(milliseconds: 600));
+            index: i,
+            duration: const Duration(milliseconds: 600),
+          );
         }
         break;
       }
@@ -158,11 +175,17 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final categoryKeys = context.watch<PlaceOrderState>().categoryKeys;
+
+    final place = context.watch<PlaceOrderState>().place;
+
     final placeMenu = context.watch<PlaceOrderState>().placeMenu;
 
     final checkoutState = context.watch<CheckoutState>();
+
     final menuItems = context.watch<PlaceOrderState>().place?.items ?? [];
+
     final checkout = checkoutState.checkout;
+
     final checkoutTotal = checkout.total;
 
     return CupertinoPageScaffold(
@@ -170,6 +193,17 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
       child: SafeArea(
         child: Column(
           children: [
+            Row(
+              children: [
+                SizedBox(
+                  width: 10,
+                ),
+                GestureDetector(
+                  onTap: goBack,
+                  child: LeftChevron(),
+                ),
+              ],
+            ),
             CategoryScroll(
               categories: placeMenu?.categories ?? [],
               tabScrollController: tabScrollController,
@@ -240,7 +274,14 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
             Footer(
               checkoutTotal: checkoutTotal,
               onSend: () {
-                _onPayPressed();
+                final items = checkout.items
+                    .map((item) => {
+                          'id': item.menuItem.id,
+                          'quantity': item.quantity,
+                        })
+                    .toList();
+                _onPayPressed(
+                    items, "", checkout.total, place!.profile.account);
               },
             ),
           ],
@@ -276,5 +317,20 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_StickyHeaderDelegate oldDelegate) {
     return true;
+  }
+}
+
+class LeftChevron extends StatelessWidget {
+  const LeftChevron({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = CupertinoTheme.of(context);
+
+    return Icon(
+      CupertinoIcons.chevron_left,
+      color: theme.primaryColor,
+      size: 16,
+    );
   }
 }

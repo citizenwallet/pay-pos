@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/theme/colors.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 

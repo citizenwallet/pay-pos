@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:pay_pos/models/place.dart';
+import 'package:provider/provider.dart';
+
+//models
 import 'package:pay_pos/models/user.dart';
+
+//state
 import 'package:pay_pos/state/wallet.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/profile_circle.dart';
-import 'package:provider/provider.dart';
+
 
 class ProfileBar extends StatefulWidget {
   final User userProfile;
@@ -27,26 +32,18 @@ class _ProfileBarState extends State<ProfileBar> {
     super.initState();
   }
 
-  // void _goToPlace() async {
-  //   final placeId = widget.placeId;
-
-  //   final navigator = GoRouter.of(context);
-
-  //   navigator.push('/$placeId/');
-  // }
 
   @override
   Widget build(BuildContext context) {
     CupertinoTheme.of(context);
 
     final walletState = context.watch<WalletState>();
-    final balance = walletState.wallet?.formattedBalance.toString();
+    final balance = walletState.wallet?.formattedBalance.toStringAsFixed(2);
 
     final userProfile = widget.userProfile;
 
     return Container(
       height: 95,
-      // color: CupertinoColors.systemBackground,
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
       ),
@@ -82,7 +79,6 @@ class _ProfileBarState extends State<ProfileBar> {
                     children: [
                       Balance(balance: balance ?? '0.00'),
                       const SizedBox(width: 16),
-                      // TopUpButton(),
                     ],
                   )
                 ],
@@ -90,38 +86,6 @@ class _ProfileBarState extends State<ProfileBar> {
             ],
           ),
           RightChevron(),
-        ],
-      ),
-    );
-  }
-}
-
-class Details extends StatelessWidget {
-  final Place place;
-
-  const Details({super.key, required this.place});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              SvgPicture.asset(
-                'assets/icons/shop.svg',
-                height: 16,
-                width: 16,
-                semanticsLabel: 'shop',
-              ),
-              const SizedBox(width: 4),
-              Name(name: place.name),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // Location(location: place.description),
-          const SizedBox(height: 4),
         ],
       ),
     );

@@ -8,17 +8,14 @@ import 'package:pay_pos/utils/delay.dart';
 import 'package:pay_pos/utils/random.dart';
 
 class ProfileState with ChangeNotifier {
-  // instantiate services here
   final WalletService _walletService = WalletService();
   final PhotosService _photosService = PhotosService();
   ProfileService myProfileService;
   User? userProfile;
 
-  // private variables here
   bool _pauseProfileCreation = false;
   final String account;
 
-  // constructor here
   ProfileState({
     required this.account,
   }) : myProfileService = ProfileService(account: account);
@@ -36,12 +33,10 @@ class ProfileState with ChangeNotifier {
     super.dispose();
   }
 
-  // state variables here
   bool loading = false;
   bool error = false;
   ProfileV1 profile = ProfileV1();
 
-  // state methods here
   Future<String?> _generateProfileUsername() async {
     String username = await getRandomUsername();
 

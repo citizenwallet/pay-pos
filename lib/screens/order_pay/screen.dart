@@ -1,18 +1,33 @@
 import 'package:flutter/cupertino.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:pay_pos/theme/colors.dart';
-import 'package:pay_pos/widgets/coin_logo.dart';
-import 'package:pay_pos/widgets/wide_button.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:pay_pos/theme/colors.dart';
+import 'dart:async';
+
+//models
+import 'package:pay_pos/models/checkout.dart';
+
+//state
+import 'package:pay_pos/state/orders.dart';
+import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/checkout.dart';
-import 'package:pay_pos/screens/interactions/menu/selected_items.dart';
+
+//screens
+import 'package:pay_pos/screens/order_pay/qrcode.dart';
+
+//widgets
+import 'package:pay_pos/widgets/wide_button.dart';
 
 class OrderPayScreen extends StatefulWidget {
-  bool isMenu = false;
+  final bool isMenu;
+  final double amount;
+  final String description;
 
-  OrderPayScreen({
+  const OrderPayScreen({
     super.key,
     required this.isMenu,
+    required this.amount,
+    required this.description,
   });
 
   @override
@@ -20,13 +35,83 @@ class OrderPayScreen extends StatefulWidget {
 }
 
 class _OrderPayScreenState extends State<OrderPayScreen> {
+  late OrdersState _ordersState;
+  Timer? _statusCheckTimer;
+  String _orderStatus = 'pending';
+  bool _isLoading = false;
+  bool _showSuccess = false;
 
-  void goBack() {
-    Navigator.pop(context);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ordersState = context.read<OrdersState>();
+      _ordersState.isPollingEnabled = false;
+      checkStatusofOrder();
+    });
+  }
+
+  void checkStatusofOrder() {
+    checkOrderStatus();
+
+    _statusCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      checkOrderStatus();
+    });
+  }
+
+  void clearCheckout() {
+    final checkoutState = context.read<CheckoutState>();
+    checkoutState.checkout = Checkout(items: []);
+  }
+
+  Future<void> checkOrderStatus() async {
+    try {
+      await _ordersState.checkOrderStatus(
+        orderId: _ordersState.orderId.toString(),
+      );
+
+      if (mounted) {
+        setState(() {
+          _orderStatus = _ordersState.orderStatus!;
+        });
+
+        if (_ordersState.orderStatus == 'paid') {
+          _statusCheckTimer?.cancel();
+          setState(() {
+            _isLoading = true;
+          });
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+                _showSuccess = true;
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking order status: $e');
+    }
+  }
+
+  Future<void> goBack(String orderId, String account, String placeId) async {
+    _statusCheckTimer?.cancel();
+    await _ordersState.deleteOrder(
+      orderId: orderId,
+      account: account,
+    );
+
+    clearCheckout();
+
+    context.go('/$placeId');
   }
 
   @override
   void dispose() {
+    _statusCheckTimer?.cancel();
+    _ordersState.isPollingEnabled = true;
     super.dispose();
   }
 
@@ -36,149 +121,76 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
 
     final checkoutState = context.watch<CheckoutState>();
 
+    final order = context.watch<OrdersState>();
+
+    final place = context.watch<PlaceOrderState>();
+
     final checkout = checkoutState.checkout;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
           child: Column(
             children: [
-              // Top content in an Expanded to push it to the center
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // QR Code
-                        QrImageView(
-                          data: "QR CODE",
-                          version: QrVersions.auto,
-                          size: 350,
-                          gapless: false,
-                          errorCorrectionLevel: QrErrorCorrectLevel.H,
-                        ),
-
-                        // Logo on top of QR
-                        Positioned(
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: theme.scaffoldBackgroundColor,
-                            ),
-                            alignment: Alignment.center,
-                            child: CoinLogo(size: 40),
-                          ),
-                        ),
-                      ],
+                    QRCodeContent(
+                      isMenu: widget.isMenu,
+                      amount: widget.amount,
+                      description: widget.description,
+                      checkout: checkout,
+                      orderId: order.orderId.toString(),
+                      slug: place.slug,
+                      width: screenWidth,
+                      height: screenHeight,
+                      checkoutState: checkoutState,
+                      showSuccess: _showSuccess,
+                      isLoading: _isLoading,
                     ),
-
-                    const SizedBox(height: 30),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Balance(
-                          balance: checkout.total.toStringAsFixed(2),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-
-                    !widget.isMenu
-                        ? Text(
-                            "This is a description of the order.",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          )
-                        : Container(
-                            height: 280,
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemGrey6,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                return SingleChildScrollView(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      minHeight: constraints.maxHeight,
-                                    ),
-                                    child: IntrinsicHeight(
-                                      child: SelectedItems(
-                                        checkoutState: checkoutState,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                    // const SizedBox(height: 20),
-
-                    const SizedBox(height: 100),
                   ],
                 ),
               ),
-
-              // Bottom content
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Cancel Button
                   WideButton(
-                    onPressed: goBack,
+                    onPressed: () {
+                      if (_orderStatus == 'paid') {
+                        clearCheckout();
+
+                        context.go('/${place.placeId}');
+                      } else {
+                        goBack(
+                          order.orderId.toString(),
+                          place.place!.profile.account,
+                          place.placeId,
+                        );
+                      }
+                    },
                     color: surfaceDarkColor.withValues(alpha: 0.8),
                     child: Text(
-                      'Cancel',
+                      _orderStatus == 'paid' ? 'Back to Orders' : 'Cancel',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: screenWidth * 0.045,
                         fontWeight: FontWeight.w700,
                         color: CupertinoColors.white,
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 20),
+                  SizedBox(height: screenHeight * 0.02),
                 ],
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class Balance extends StatelessWidget {
-  final String balance;
-
-  const Balance({super.key, required this.balance});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        CoinLogo(size: 33),
-        SizedBox(width: 4),
-        Text(
-          balance,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -3,8 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+//models
 import 'package:pay_pos/models/menu_item.dart';
+
+//states
 import 'package:pay_pos/state/checkout.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 class MenuListItem extends StatelessWidget {

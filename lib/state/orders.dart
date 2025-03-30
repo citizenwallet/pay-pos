@@ -1,21 +1,53 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/orders.dart';
+import 'package:pay_pos/services/sigauth.dart';
+import 'package:web3dart/crypto.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:pay_pos/services/pay/localstorage.dart';
 
 class OrdersState with ChangeNotifier {
-  // instantiate services here
   final OrdersService ordersService;
+  late final SignatureAuthService signatureAuthService;
 
-  // private variables here
   bool _mounted = true;
+  bool _isPollingEnabled = true;
 
-  // constructor here
-  OrdersState({
-    // required this.slug,
-    required this.placeId,
-  }) : ordersService = OrdersService(placeId: placeId);
+  OrdersState({required this.placeId})
+      : ordersService = OrdersService(placeId: placeId);
+
+  Future<void> _signatureAuth(String account) async {
+    try {
+      if (signatureAuthService != null) {
+        return;
+      }
+    } catch (e) {}
+
+    final privateKey = await LocalStorageService().getPvtKey();
+    if (privateKey == null || privateKey.isEmpty) {
+      throw Exception("Private key is null or empty");
+    }
+
+    final credentials = EthPrivateKey.fromHex(privateKey);
+    final address = EthereumAddress.fromHex(account);
+
+    signatureAuthService = SignatureAuthService(
+      credentials: credentials,
+      address: address,
+    );
+
+    safeNotifyListeners();
+  }
+
+  bool get isPollingEnabled => _isPollingEnabled;
+  set isPollingEnabled(bool value) {
+    _isPollingEnabled = value;
+    safeNotifyListeners();
+  }
 
   void safeNotifyListeners() {
     if (_mounted) {
@@ -29,26 +61,108 @@ class OrdersState with ChangeNotifier {
     super.dispose();
   }
 
-  // state variables here
   String placeId;
   PlaceWithMenu? place;
   PlaceMenu? placeMenu;
   List<GlobalKey<State<StatefulWidget>>> categoryKeys = [];
   List<Order> orders = [];
   int total = 0;
-  // state methods here
+  int orderId = 0;
+  String orderStatus = "";
+
   bool loading = false;
   bool error = false;
 
-
   Future<void> fetchOrders() async {
+    if (!_isPollingEnabled) return;
+
     try {
-      debugPrint('fetchOrders');
       final response = await ordersService.getOrders();
 
       orders = response.orders;
 
-      // total = response.total;
+      safeNotifyListeners();
+    } catch (e) {
+      error = true;
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> createOrder({
+    required List<Map<String, dynamic>> items,
+    required String description,
+    required double total,
+    required String account,
+  }) async {
+    loading = true;
+    error = false;
+    safeNotifyListeners();
+
+    try {
+      await _signatureAuth(account);
+
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+
+      final response = await ordersService.createOrder(
+        items: items,
+        description: description,
+        total: total,
+        account: account,
+        headers: headers,
+      );
+
+      orderId = response.orderId;
+      loading = false;
+
+      safeNotifyListeners();
+    } catch (e) {
+      loading = false;
+      error = true;
+      safeNotifyListeners();
+    }
+  }
+
+  Future<void> deleteOrder({
+    required String orderId,
+    required String account,
+  }) async {
+    loading = true;
+    error = false;
+    safeNotifyListeners();
+    try {
+      await _signatureAuth(account);
+
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+
+      await ordersService.deleteOrder(
+        orderId: orderId,
+        headers: headers,
+      );
+
+      loading = false;
+
+      safeNotifyListeners();
+    } catch (e) {
+      loading = false;
+      error = true;
+      safeNotifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> checkOrderStatus({
+    required String orderId,
+  }) async {
+    loading = true;
+    error = false;
+    safeNotifyListeners();
+    try {
+      final response = await ordersService.checkOrderStatus(orderId: orderId);
+
+      orderStatus = response;
+
       safeNotifyListeners();
     } catch (e) {
       error = true;

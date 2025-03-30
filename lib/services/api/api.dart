@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
 const netTimeoutSeconds = 60;
 const streamTimeoutSeconds = 10;
 
@@ -97,7 +98,9 @@ class APIService {
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
 
-    return jsonDecode(utf8.decode(response.bodyBytes));
+    return jsonDecode(
+      utf8.decode(response.bodyBytes),
+    );
   }
 
   Future<dynamic> patch({

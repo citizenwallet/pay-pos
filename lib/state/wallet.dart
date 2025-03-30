@@ -168,37 +168,8 @@ class WalletState with ChangeNotifier {
     return false;
   }
 
-  Future<bool> createAccount() async {
-    try {
-      if (address == null) {
-        throw Exception('Wallet not created');
-      }
-
-      loading = true;
-      error = false;
-      safeNotifyListeners();
-
-      final exists = await _walletService.createAccount();
-
-      if (!exists) {
-        throw Exception('Account not created');
-      }
-
-      return true;
-    } catch (e, s) {
-      debugPrint('error: $e');
-      debugPrint('stack trace: $s');
-      error = true;
-      safeNotifyListeners();
-    } finally {
-      loading = false;
-      safeNotifyListeners();
-    }
-    return false;
-  }
-
-  Future<void> updateBalance() async {
-    final balance = await _walletService.getBalance();
+  Future<void> updateBalance({String? addr}) async {
+    final balance = await _walletService.getBalance(addr: addr);
     wallet?.setBalance(balance);
     safeNotifyListeners();
   }

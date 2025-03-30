@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 //models
 import 'package:pay_pos/models/place.dart';
@@ -10,6 +11,7 @@ import 'package:pay_pos/models/user.dart';
 import 'package:pay_pos/screens/interactions/order_list_item.dart';
 import 'package:pay_pos/screens/order/footer.dart';
 import 'package:pay_pos/screens/order/profile_bar.dart';
+import 'package:pay_pos/services/pay/localstorage.dart';
 
 //state
 import 'package:pay_pos/state/orders.dart';
@@ -33,6 +35,7 @@ class _OrderScreenState extends State<OrderScreen> {
   final ScrollController _scrollController = ScrollController();
   FocusNode amountFocusNode = FocusNode();
   FocusNode messageFocusNode = FocusNode();
+  Timer? _pollingTimer;
 
   bool isKeyboardVisible = false;
 
@@ -48,15 +51,23 @@ class _OrderScreenState extends State<OrderScreen> {
       _walletState = context.read<WalletState>();
       _placeOrderState = context.read<PlaceOrderState>();
       onLoad();
+      startPolling();
+    });
+  }
+
+  void startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _ordersState.fetchOrders();
+      _walletState.updateBalance(addr: _placeOrderState.place?.profile.account);
     });
   }
 
   Future<void> onLoad() async {
     await _placeOrderState.fetchPlaceandMenu();
     await _ordersState.fetchOrders();
-    // await _walletState.updateBalance();
-
-    // _interactionState.startPolling(updateBalance: _walletState.updateBalance);
+    await _walletState.openWallet();
+    await _walletState.updateBalance(
+        addr: _placeOrderState.place?.profile.account);
   }
 
   void goBack() {
@@ -65,7 +76,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   void dispose() {
-    // _interactionState.stopPolling();
+    _pollingTimer?.cancel();
 
     amountFocusNode.dispose();
     messageFocusNode.dispose();
@@ -73,35 +84,25 @@ class _OrderScreenState extends State<OrderScreen> {
     super.dispose();
   }
 
-  void _onPayPressed() {
-    final navigator = GoRouter.of(context);
+  Future<void> _onPayPressed(
+      String description, double total, String account) async {
+    await _ordersState.createOrder(
+      items: [],
+      description: description,
+      total: total,
+      account: account,
+    );
 
-    navigator.push('/${widget.placeId}/order/pay');
+    context.go('/${widget.placeId}/order/pay', extra: {
+      'amount': total,
+      'description': description,
+    });
   }
 
   void sendMessage(double amount, String? message) {
-    _onPayPressed();
-    // final last = orders.last;
+    final account = _placeOrderState.place?.profile.account;
 
-    // setState(() {
-    //   orders.add(Order(
-    //     type: OrderType.app,
-    //     id: last.id + 1,
-    //     txHash:
-    //         '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-    //     createdAt: DateTime.now(),
-    //     account: EthereumAddress.fromHex('0xUserWallet123'),
-    //     description: message,
-    //     status: OrderStatus.success,
-    //   ));
-    // });
-
-    // Future.delayed(
-    //   const Duration(milliseconds: 100),
-    //   () {
-    //     scrollToTop();
-    //   },
-    // );
+    _onPayPressed(message!, amount, account!);
   }
 
   void _dismissKeyboard() {
@@ -110,6 +111,9 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.width;
+
     final place = context.select((PlaceOrderState state) => state.place);
 
     final orders = context.select((OrdersState state) => state.orders);
@@ -127,8 +131,17 @@ class _OrderScreenState extends State<OrderScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              ProfileBar(
-                userProfile: place.profile,
+              GestureDetector(
+                onTap: () {
+                  showPinEntryDialog(
+                    context,
+                    widget.placeId,
+                    screenHeight * 0.02,
+                  );
+                },
+                child: ProfileBar(
+                  userProfile: place.profile,
+                ),
               ),
               Expanded(
                 child: ListView.builder(
@@ -141,7 +154,8 @@ class _OrderScreenState extends State<OrderScreen> {
                     return OrderListItem(
                       key: Key('order-${order.id}'),
                       order: order,
-                      mappedItems: place?.mappedItems ?? {},
+                      mappedItems: place.mappedItems,
+                      width: screenWidth * 0.65,
                     );
                   },
                 ),
@@ -184,4 +198,102 @@ class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
       true;
+}
+
+Future<void> showPinEntryDialog(
+  BuildContext context,
+  String placeId,
+  double height,
+) async {
+  List<TextEditingController> controllers =
+      List.generate(4, (index) => TextEditingController());
+  List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+
+  await showCupertinoDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      return CupertinoAlertDialog(
+        title: Text("Enter PIN"),
+        content: Column(
+          children: [
+            SizedBox(height: height),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) {
+                return Container(
+                  width: 40,
+                  margin: EdgeInsets.symmetric(horizontal: 5),
+                  child: CupertinoTextField(
+                    controller: controllers[index],
+                    focusNode: focusNodes[index],
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    maxLength: 1,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: CupertinoColors.systemGrey,
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    onChanged: (value) {
+                      if (value.isNotEmpty && index < 3) {
+                        focusNodes[index + 1].requestFocus();
+                      }
+                    },
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () async {
+              String enteredPin =
+                  controllers.map((controller) => controller.text).join();
+              if (enteredPin.length == 4) {
+                bool verify = await LocalStorageService().verifyPin(enteredPin);
+
+                if (verify) {
+                  Navigator.pop(context);
+
+                  context.go('/$placeId/settings');
+                } else {
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (context) => CupertinoAlertDialog(
+                      title: Text("Invalid PIN"),
+                      content: Text("Enter a valid 4-digit PIN"),
+                      actions: [
+                        CupertinoDialogAction(
+                          child: Text("OK"),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } else {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: Text("Invalid PIN"),
+                    content: Text("Enter a valid 4-digit PIN"),
+                    actions: [
+                      CupertinoDialogAction(
+                        child: Text("OK"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            child: Text("Confirm"),
+          ),
+        ],
+      );
+    },
+  );
 }

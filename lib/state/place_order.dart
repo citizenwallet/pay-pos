@@ -5,20 +5,17 @@ import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/places.dart';
 
 class PlaceOrderState with ChangeNotifier {
-  // instantiate services here
+
   final PlacesService placesService = PlacesService();
 
-  // private variables here
   bool _mounted = true;
   String? _account;
   String? _slug;
 
-  // constructor here
   PlaceOrderState({
     required this.placeId,
   });
 
-  // getters
   String get account => _account ?? '';
   String get slug => _slug ?? '';
 
@@ -41,6 +38,7 @@ class PlaceOrderState with ChangeNotifier {
   List<GlobalKey<State<StatefulWidget>>> categoryKeys = [];
   List<Order> orders = [];
   int total = 0;
+
   // state methods here
   bool loading = false;
   bool error = false;
@@ -59,8 +57,6 @@ class PlaceOrderState with ChangeNotifier {
       placeMenu = PlaceMenu(menuItems: placeWithMenu.items);
       categoryKeys =
           placeMenu!.categories.map((category) => GlobalKey()).toList();
-
-      // await ordersService.getOrders();
 
       safeNotifyListeners();
     } catch (e) {

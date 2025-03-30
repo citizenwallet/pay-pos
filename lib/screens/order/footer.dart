@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/models/place.dart';
 import 'package:pay_pos/utils/formatters.dart';
+
+//models
+import 'package:pay_pos/models/place.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/text_field.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
+
 
 class Footer extends StatefulWidget {
   final String placeId;
@@ -61,9 +66,7 @@ class _FooterState extends State<Footer> {
   }
 
   void _onMenuPressed() {
-    final navigator = GoRouter.of(context);
-
-    navigator.push('/${widget.placeId}/menu');
+    context.go('/${widget.placeId}/menu');
   }
 
   @override

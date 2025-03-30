@@ -68,6 +68,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   modal_bottom_sheet: ^3.0.0
   flutter_contacts: ^1.1.9+2
+  url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:

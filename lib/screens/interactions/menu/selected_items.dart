@@ -1,7 +1,13 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pay_pos/models/checkout_item.dart';
-import 'package:pay_pos/state/checkout.dart';
 import 'package:pay_pos/theme/colors.dart';
+
+//models
+import 'package:pay_pos/models/checkout_item.dart';
+
+//states
+import 'package:pay_pos/state/checkout.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 class SelectedItems extends StatelessWidget {
@@ -25,7 +31,7 @@ class SelectedItems extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Color(0xFFD9D9D9),
+            color: whiteColor,
             width: 1,
           ),
         ),
@@ -43,10 +49,12 @@ class SelectedItems extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          ...items.map((item) => SelectedItemTile(
-                item: item,
-                checkoutState: checkoutState,
-              )),
+          ...items.map(
+            (item) => SelectedItemTile(
+              item: item,
+              checkoutState: checkoutState,
+            ),
+          ),
         ],
       ),
     );

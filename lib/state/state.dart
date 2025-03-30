@@ -4,6 +4,7 @@ import 'package:pay_pos/state/app.dart';
 import 'package:pay_pos/state/checkout.dart';
 import 'package:pay_pos/state/orders.dart';
 import 'package:pay_pos/state/place_order.dart';
+import 'package:pay_pos/state/pos.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:provider/provider.dart';
 
@@ -34,10 +35,6 @@ Widget provideState(
   return MultiProvider(
     key: Key(placeId),
     providers: [
-      // ChangeNotifierProvider(
-      //   key: Key('profile-$account'),
-      //   create: (_) => ProfileState(account: account),
-      // ),
       ChangeNotifierProvider(
         key: Key('orders-$placeId'),
         create: (_) => OrdersState(placeId: placeId),
@@ -46,6 +43,12 @@ Widget provideState(
         key: Key('orders-with-place-$placeId'),
         create: (_) => PlaceOrderState(
           placeId: placeId,
+        ),
+      ),
+      ChangeNotifierProvider(
+        key: Key('pos'),
+        create: (_) => POSState(
+          posId: "",
         ),
       ),
       ChangeNotifierProxyProvider<PlaceOrderState, CheckoutState>(
@@ -58,7 +61,6 @@ Widget provideState(
               slug: placeOrderState.slug,
             );
           }
-          // Update existing instance instead of creating new one
           previous.updateAccountAndSlug(
             placeOrderState.account,
             placeOrderState.slug,

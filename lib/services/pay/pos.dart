@@ -17,13 +17,27 @@ class POSService {
 
       final Map<String, dynamic> data = response;
 
-      final placeId = data['place_id'];
+      final placeId = data['place_id'].toString();
 
       return placeId;
     } catch (e, s) {
       debugPrint('Failed to fetch pos id: $e');
       debugPrint('Stack trace: $s');
       throw Exception('Failed to check ID activation');
+    }
+  }
+
+  Future<void> updatePos(String posId) async {
+    try {
+      String url = '/pos/updateStatus?posId=$posId';
+
+      final response = await apiService.put(url: url, body: {
+        'isActive': false,
+      });
+    } catch (e, s) {
+      debugPrint('Failed to update pos: $e');
+      debugPrint('Stack trace: $s');
+      throw Exception('Failed to update pos');
     }
   }
 }

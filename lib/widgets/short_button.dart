@@ -25,7 +25,7 @@ class ShortButton extends StatelessWidget {
             : color ?? surfaceDarkColor,
         borderRadius: BorderRadius.circular(100),
         padding: const EdgeInsets.symmetric(vertical: 16),
-        onPressed: disabled ? null : onPressed,
+        onPressed: onPressed,
         child: child,
       ),
     );
