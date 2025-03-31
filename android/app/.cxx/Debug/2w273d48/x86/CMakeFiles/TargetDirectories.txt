@@ -1,0 +1,2 @@
+Z:/Work/Techi Solutions/Repo/pay-pos/android/app/.cxx/Debug/2w273d48/x86/CMakeFiles/edit_cache.dir
+Z:/Work/Techi Solutions/Repo/pay-pos/android/app/.cxx/Debug/2w273d48/x86/CMakeFiles/rebuild_cache.dir

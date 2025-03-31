@@ -12,6 +12,7 @@ import 'package:pay_pos/state/orders.dart';
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/pos.dart';
 import 'package:pay_pos/theme/colors.dart';
+import 'package:pay_pos/widgets/settings_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 import 'package:provider/provider.dart';
 
@@ -76,6 +77,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _posState.updatePOS(posId: posId);
 
     await localStorage.clearPosId();
+    await localStorage.clearPin();
+    await localStorage.clearPvtKey();
 
     context.go('/');
   }
@@ -118,18 +121,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTapLeading: () => goBack(place.place.id.toString()),
               ),
               SizedBox(height: screenHeight * 0.05),
-              Container(
-                color: CupertinoColors.systemGrey,
-                height: screenHeight * 0.45,
-              ),
-              // SettingsRow(
-              //   label: AppLocalizations.of(context)!.pushNotifications,
-              //   icon: 'assets/icons/notification_bell.svg',
-              //   trailing: CupertinoSwitch(
-              //     value: push,
-              //     onChanged: handleTogglePushNotifications,
-              //   ),
+              // Container(
+              //   color: CupertinoColors.systemGrey,
+              //   height: screenHeight * 0.45,
               // ),
+              SettingsRow(
+                label: "Languages",
+                icon: 'assets/icons/language-svgrepo-com.svg',
+                iconColor: CupertinoColors.systemGrey,
+                onTap: () {},
+                // => {handleLanguage(selectedLanguage)},
+                // trailing: Row(
+                //   children: [
+                //     Text(
+                //       languageOptions[selectedLanguage].name,
+                //       style: TextStyle(
+                //         color: Theme.of(context)
+                //             .colors
+                //             .subtleSolidEmphasis
+                //             .resolveFrom(context),
+                //       ),
+                //     ),
+                //     const SizedBox(
+                //       width: 10,
+                //     )
+                //   ],
+                // ),
+              ),
+              SettingsRow(
+                label: "Theme",
+                icon: 'assets/icons/',
+                iconColor: CupertinoColors.systemGrey,
+                onTap: () {},
+                // => {handleLanguage(selectedLanguage)},
+                // trailing: Row(
+                //   children: [
+                //     Text(
+                //       languageOptions[selectedLanguage].name,
+                //       style: TextStyle(
+                //         color: Theme.of(context)
+                //             .colors
+                //             .subtleSolidEmphasis
+                //             .resolveFrom(context),
+                //       ),
+                //     ),
+                //     const SizedBox(
+                //       width: 10,
+                //     )
+                //   ],
+                // ),
+              ),
               SizedBox(height: screenHeight * 0.05),
               Container(
                 padding: EdgeInsets.symmetric(

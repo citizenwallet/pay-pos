@@ -38,9 +38,10 @@ class SettingsRow extends StatelessWidget {
                   margin: const EdgeInsets.fromLTRB(0, 5, 0, 5),
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   decoration: BoxDecoration(
-                      color: theme.barBackgroundColor,
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      border: Border.all(color: theme.barBackgroundColor)),
+                    color: theme.barBackgroundColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    border: Border.all(color: CupertinoColors.systemGrey),
+                  ),
                   child: Row(
                     children: [
                       if (icon != null) ...[

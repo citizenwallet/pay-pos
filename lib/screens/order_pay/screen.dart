@@ -72,7 +72,7 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
 
       if (mounted) {
         setState(() {
-          _orderStatus = _ordersState.orderStatus!;
+          _orderStatus = _ordersState.orderStatus;
         });
 
         if (_ordersState.orderStatus == 'paid') {
