@@ -116,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             children: [
               SettingsProfileBar(
-                userProfile: place.profile,
+                userProfile: place.place,
                 height: screenHeight * 0.25,
                 onTapLeading: () => goBack(place.place.id.toString()),
               ),

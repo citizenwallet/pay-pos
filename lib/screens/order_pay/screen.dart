@@ -169,7 +169,7 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                       } else {
                         goBack(
                           order.orderId.toString(),
-                          place.place!.profile.account,
+                          place.place!.place.account[0],
                           place.placeId,
                         );
                       }

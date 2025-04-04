@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pay_pos/models/place.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -13,12 +14,12 @@ import 'package:pay_pos/widgets/profile_circle.dart';
 
 
 class ProfileBar extends StatefulWidget {
-  final User userProfile;
+  final Place place;
   final VoidCallback? onTapLeading;
 
   const ProfileBar({
     super.key,
-    required this.userProfile,
+    required this.place,
     this.onTapLeading,
   });
 
@@ -40,7 +41,7 @@ class _ProfileBarState extends State<ProfileBar> {
     final walletState = context.watch<WalletState>();
     final balance = walletState.wallet?.formattedBalance.toStringAsFixed(2);
 
-    final userProfile = widget.userProfile;
+    final place = widget.place;
 
     return Container(
       height: 95,
@@ -62,7 +63,7 @@ class _ProfileBarState extends State<ProfileBar> {
           Row(
             children: [
               ProfileCircle(
-                imageUrl: userProfile.imageUrl,
+                imageUrl: place.imageUrl,
                 size: 70,
               ),
               const SizedBox(width: 16),
@@ -72,7 +73,7 @@ class _ProfileBarState extends State<ProfileBar> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Name(
-                    name: userProfile.name,
+                    name: place.name,
                   ),
                   const SizedBox(height: 4),
                   Row(

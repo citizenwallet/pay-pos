@@ -58,7 +58,8 @@ class _OrderScreenState extends State<OrderScreen> {
   void startPolling() {
     _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _ordersState.fetchOrders();
-      _walletState.updateBalance(addr: _placeOrderState.place?.profile.account);
+      _walletState.updateBalance(
+          addr: _placeOrderState.place?.place.account[0]);
     });
   }
 
@@ -67,7 +68,7 @@ class _OrderScreenState extends State<OrderScreen> {
     await _ordersState.fetchOrders();
     await _walletState.openWallet();
     await _walletState.updateBalance(
-        addr: _placeOrderState.place?.profile.account);
+        addr: _placeOrderState.place?.place.account[0]);
   }
 
   void goBack() {
@@ -100,7 +101,7 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void sendMessage(double amount, String? message) {
-    final account = _placeOrderState.place?.profile.account;
+    final account = _placeOrderState.place?.place.account[0];
 
     _onPayPressed(message!, amount, account!);
   }
@@ -115,6 +116,8 @@ class _OrderScreenState extends State<OrderScreen> {
     final screenHeight = MediaQuery.of(context).size.width;
 
     final place = context.select((PlaceOrderState state) => state.place);
+
+    print(place);
 
     final orders = context.select((OrdersState state) => state.orders);
 
@@ -140,7 +143,7 @@ class _OrderScreenState extends State<OrderScreen> {
                   );
                 },
                 child: ProfileBar(
-                  userProfile: place.profile,
+                  place: place.place,
                 ),
               ),
               Expanded(
@@ -177,7 +180,7 @@ class _OrderScreenState extends State<OrderScreen> {
 }
 
 class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
-  final User user;
+  final Place user;
 
   ProfileBarDelegate({required this.user});
 
@@ -185,7 +188,7 @@ class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return ProfileBar(
-      userProfile: user,
+      place: user,
     );
   }
 
