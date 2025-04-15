@@ -51,3 +51,6 @@ upload-keystore.jks
 
 # Ignore key properties file
 key.properties
+
+
+.cxx
