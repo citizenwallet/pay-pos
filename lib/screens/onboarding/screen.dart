@@ -30,7 +30,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen>
     with WidgetsBindingObserver {
-  OnboardingState? _onboardingState;
+  late OnboardingState _onboardingState;
   Timer? _activationCheckTimer;
   bool _isDialogShown = false;
 
@@ -47,10 +47,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void onLoad() async {
-    await _onboardingState?.fetchPosId();
+    await _onboardingState.fetchPosId();
 
     _activationCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _onboardingState?.checkActivation();
+      _onboardingState.checkActivation();
     });
   }
 
