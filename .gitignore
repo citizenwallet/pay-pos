@@ -46,8 +46,6 @@ app.*.map.json
 
 .env
 
-# Ignore Keystore files
-upload-keystore.jks
-
-# Ignore key properties file
-key.properties
+# Keystore files
+android/app/upload-keystore.jks
+android/key.properties

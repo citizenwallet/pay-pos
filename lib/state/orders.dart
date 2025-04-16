@@ -97,13 +97,18 @@ class OrdersState with ChangeNotifier {
     loading = true;
     error = false;
     safeNotifyListeners();
-
+    print("2");
+    print(account);
     try {
+      print("1.1");
       await _signatureAuth(account);
-
+      print("1.2");
       final connection = signatureAuthService.connect();
+      print("1.3");
       final headers = connection.headers;
-
+      print("1.4");
+      print(headers);
+      print("1.5");
       final response = await ordersService.createOrder(
         items: items,
         description: description,
@@ -111,7 +116,7 @@ class OrdersState with ChangeNotifier {
         account: account,
         headers: headers,
       );
-
+      print("1.6");
       orderId = response.orderId;
       loading = false;
 

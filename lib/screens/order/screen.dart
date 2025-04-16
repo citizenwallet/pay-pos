@@ -56,11 +56,15 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      _ordersState.fetchOrders();
-      _walletState.updateBalance(
-          addr: _placeOrderState.place?.place.account[0]);
-    });
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (timer) {
+        _ordersState.fetchOrders();
+        _walletState.updateBalance(
+          addr: _placeOrderState.place?.place.account,
+        );
+      },
+    );
   }
 
   Future<void> onLoad() async {
@@ -68,7 +72,8 @@ class _OrderScreenState extends State<OrderScreen> {
     await _ordersState.fetchOrders();
     await _walletState.openWallet();
     await _walletState.updateBalance(
-        addr: _placeOrderState.place?.place.account[0]);
+      addr: _placeOrderState.place?.place.account,
+    );
   }
 
   void goBack() {
@@ -87,6 +92,8 @@ class _OrderScreenState extends State<OrderScreen> {
 
   Future<void> _onPayPressed(
       String description, double total, String account) async {
+    print("1");
+    print(account);
     await _ordersState.createOrder(
       items: [],
       description: description,
@@ -101,7 +108,7 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void sendMessage(double amount, String? message) {
-    final account = _placeOrderState.place?.place.account[0];
+    final account = _placeOrderState.place?.place.account;
 
     _onPayPressed(message!, amount, account!);
   }
@@ -116,8 +123,6 @@ class _OrderScreenState extends State<OrderScreen> {
     final screenHeight = MediaQuery.of(context).size.width;
 
     final place = context.select((PlaceOrderState state) => state.place);
-
-    print(place);
 
     final orders = context.select((OrdersState state) => state.orders);
 

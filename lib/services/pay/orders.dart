@@ -54,14 +54,16 @@ class OrdersService {
     required String account,
     required Map<String, String> headers,
   }) async {
+    print("2.1");
+    print(headers);
     final int totalInCents = (total * 100).round();
     if (totalInCents <= 0) {
       throw Exception('Total amount must be greater than 0');
     }
-
+    print("2.2");
     try {
       String url = '/places/$placeId/createOrder';
-
+      print("2.3");
       final body = {
         'placeId': int.parse(placeId),
         'items': items,
@@ -70,13 +72,13 @@ class OrdersService {
         'account': account,
         'type': "pos",
       };
-
+      print("2.4");
       final response = await apiService.post(
         url: url,
         body: body,
         headers: headers,
       );
-
+      print(response);
       if (response == null) {
         throw Exception('Received null response from server');
       }

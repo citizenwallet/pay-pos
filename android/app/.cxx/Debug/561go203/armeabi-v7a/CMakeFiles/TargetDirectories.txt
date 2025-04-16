@@ -1,0 +1,2 @@
+/Users/viranranaraja/Desktop/Techi/POS/pay-pos/android/app/.cxx/Debug/561go203/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/viranranaraja/Desktop/Techi/POS/pay-pos/android/app/.cxx/Debug/561go203/armeabi-v7a/CMakeFiles/rebuild_cache.dir
