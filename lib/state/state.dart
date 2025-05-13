@@ -47,9 +47,7 @@ Widget provideState(
       ),
       ChangeNotifierProvider(
         key: Key('pos'),
-        create: (_) => POSState(
-          posId: "",
-        ),
+        create: (_) => POSState(),
       ),
       ChangeNotifierProxyProvider<PlaceOrderState, CheckoutState>(
         key: Key('checkout-$placeId'),

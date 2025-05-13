@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:pay_pos/utils/delay.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:pay_pos/services/pay/pos.dart';
 import 'package:pay_pos/services/pay/localstorage.dart';
@@ -9,62 +10,93 @@ import 'package:web3dart/crypto.dart';
 
 class OnboardingState with ChangeNotifier {
   String? posId;
-  String? placeId;
-  bool isActivated = false;
+  bool loading = false;
+
   final LocalStorageService _localStorage = LocalStorageService();
-  EthPrivateKey? privateKey;
+  final POSService _posService = POSService();
+  EthPrivateKey? _privateKey;
 
   Future<String> generatePosId() async {
     final random = Random.secure();
     final randomKey = EthPrivateKey.createRandom(random);
-    privateKey = randomKey;
+    _privateKey = randomKey;
 
     return randomKey.address.hexEip55;
   }
 
-  Future<bool> checkActivationId(String id) async {
+  Future<String?> getPosId() async {
+    final storedPvtKey = await _localStorage.getPvtKey();
+    if (storedPvtKey == null) return null;
+
+    _privateKey = EthPrivateKey.fromHex(storedPvtKey);
+
+    return _privateKey?.address.hexEip55;
+  }
+
+  Future<String?> checkActivationId(String id) async {
     try {
-      final posService = POSService(posId: id);
-      final activatedPlaceId = await posService.checkIdActivation(id);
-      placeId = activatedPlaceId;
-      return activatedPlaceId.isNotEmpty;
+      final activatedPlaceId = await _posService.checkIdActivation(id);
+
+      await _localStorage.setPlaceId(activatedPlaceId);
+
+      return activatedPlaceId;
     } catch (e) {
       debugPrint('Error checking activation: $e');
-      return false;
+      return null;
     }
   }
 
-  Future<void> fetchPosId() async {
+  Future<String?> loadPosId() async {
     try {
+      loading = true;
+      notifyListeners();
+
+      final storedPosId = await getPosId();
+      final storedPlaceId = await _localStorage.getPlaceId();
+      if (storedPosId != null && storedPlaceId != null) {
+        return storedPlaceId;
+      }
+
       posId = await generatePosId();
-      isActivated = false;
+      loading = false;
     } catch (e) {
       posId = null;
-      isActivated = false;
+
+      await delay(const Duration(seconds: 1));
+      return loadPosId();
     }
+
     notifyListeners();
+
+    return null;
   }
 
-  Future<void> checkActivation() async {
-    final storedPosId = await _localStorage.getPosId();
-    if (storedPosId != null) {
-      isActivated = await checkActivationId(storedPosId);
-      if (isActivated) {
-        posId = storedPosId;
-        notifyListeners();
-        return;
-      }
+  Future<String?> checkActivation() async {
+    final storedPosId = await getPosId();
+    final storedPlaceId = await _localStorage.getPlaceId();
+    if (storedPosId != null && storedPlaceId != null) {
+      return storedPlaceId;
     }
 
-    if (posId == null) return;
-
-    isActivated = await checkActivationId(posId!);
-    if (isActivated) {
-      await _localStorage.setPosId(posId!);
-
-      final hexString = bytesToHex(privateKey!.privateKey, include0x: false);
-      await _localStorage.setPvtKey(hexString);
+    if (posId != null && storedPlaceId != null) {
+      return storedPlaceId;
     }
-    notifyListeners();
+
+    final unactivatedPosId = _privateKey?.address.hexEip55;
+    if (unactivatedPosId == null) return null;
+
+    try {
+      final activatedPlaceId =
+          await _posService.checkIdActivation(unactivatedPosId);
+
+      await _localStorage.setPlaceId(activatedPlaceId);
+      await _localStorage
+          .setPvtKey(bytesToHex(_privateKey!.privateKey, include0x: false));
+
+      return activatedPlaceId;
+    } catch (e) {
+      debugPrint('Error checking activation: $e');
+      return null;
+    }
   }
 }

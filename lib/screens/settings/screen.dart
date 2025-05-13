@@ -15,6 +15,7 @@ import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/widgets/settings_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 import 'package:provider/provider.dart';
+import 'package:web3dart/credentials.dart';
 
 class SettingsScreen extends StatefulWidget {
   // final String posId;
@@ -73,8 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _onDeactivatePressed(String posId) async {
-    await _posState.updatePOS(posId: posId);
+  Future<void> _onDeactivatePressed() async {
+    final pk = await localStorage.getPvtKey();
+    if (pk != null) {
+      final posId = EthPrivateKey.fromHex(pk).address.hexEip55;
+
+      await _posState.updatePOS(posId: posId);
+    }
 
     await localStorage.clearPosId();
     await localStorage.clearPin();
@@ -188,11 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     WideButton(
-                      onPressed: () async {
-                        _onDeactivatePressed(
-                          await localStorage.getPosId() ?? "",
-                        );
-                      },
+                      onPressed: _onDeactivatePressed,
                       color: surfaceDarkColor.withValues(alpha: 1),
                       child: Text(
                         'Deactivate Terminal',

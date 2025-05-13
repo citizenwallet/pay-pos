@@ -2,16 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/services/pay/pos.dart';
 
 class POSState with ChangeNotifier {
-  final POSService posService;
-  final String posId;
+  final POSService posService = POSService();
 
   bool _mounted = true;
 
-  POSState({
-    required this.posId,
-  }) : posService = POSService(
-          posId: posId,
-        );
+  POSState();
 
   void safeNotifyListeners() {
     if (_mounted) {

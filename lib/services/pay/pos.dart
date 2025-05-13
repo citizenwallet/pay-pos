@@ -5,15 +5,12 @@ import 'package:pay_pos/services/api/api.dart';
 class POSService {
   final APIService apiService =
       APIService(baseURL: dotenv.env['DASHBOARD_API_BASE_URL'] ?? '');
-  final String posId;
 
-  POSService({
-    required this.posId,
-  });
+  POSService();
 
   Future<String> checkIdActivation(String id) async {
     try {
-      final response = await apiService.get(url: '/pos/activated?posId=$posId');
+      final response = await apiService.get(url: '/pos/activated?posId=$id');
 
       final Map<String, dynamic> data = response;
 
@@ -27,9 +24,9 @@ class POSService {
     }
   }
 
-  Future<void> updatePos(String posId) async {
+  Future<void> updatePos(String id) async {
     try {
-      String url = '/pos/updateStatus?posId=$posId';
+      String url = '/pos/updateStatus?posId=$id';
 
       final response = await apiService.put(url: url, body: {
         'isActive': false,

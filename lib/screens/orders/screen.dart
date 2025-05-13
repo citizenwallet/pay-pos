@@ -1,16 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_pos/models/order.dart';
 import 'dart:async';
 
 //models
 import 'package:pay_pos/models/place.dart';
-import 'package:pay_pos/models/user.dart';
 
 //screens
-import 'package:pay_pos/screens/interactions/order_list_item.dart';
-import 'package:pay_pos/screens/order/footer.dart';
-import 'package:pay_pos/screens/order/profile_bar.dart';
+import 'package:pay_pos/screens/orders/footer.dart';
+import 'package:pay_pos/screens/orders/order_list_item.dart';
+import 'package:pay_pos/screens/orders/profile_bar.dart';
 import 'package:pay_pos/services/pay/localstorage.dart';
 
 //state
@@ -19,19 +19,19 @@ import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:provider/provider.dart';
 
-class OrderScreen extends StatefulWidget {
+class OrdersScreen extends StatefulWidget {
   final String placeId;
 
-  const OrderScreen({
+  const OrdersScreen({
     super.key,
     required this.placeId,
   });
 
   @override
-  State<OrderScreen> createState() => _OrderScreenState();
+  State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> {
+class _OrdersScreenState extends State<OrdersScreen> {
   final ScrollController _scrollController = ScrollController();
   FocusNode amountFocusNode = FocusNode();
   FocusNode messageFocusNode = FocusNode();
@@ -100,6 +100,12 @@ class _OrderScreenState extends State<OrderScreen> {
     });
   }
 
+  void handleOrderPressed(Order order) {
+    context.push('/${widget.placeId}/order/${order.id}', extra: {
+      'order': order,
+    });
+  }
+
   void sendMessage(double amount, String? message) {
     final account = _placeOrderState.place?.place.account[0];
 
@@ -158,7 +164,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       key: Key('order-${order.id}'),
                       order: order,
                       mappedItems: place.mappedItems,
-                      width: screenWidth * 0.65,
+                      onPressed: handleOrderPressed,
                     );
                   },
                 ),

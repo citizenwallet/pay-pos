@@ -15,7 +15,6 @@ import 'package:pay_pos/services/pay/localstorage.dart';
 
 //widgets
 import 'package:pay_pos/widgets/short_button.dart';
-import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 
 //states
@@ -47,11 +46,29 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void onLoad() async {
-    await _onboardingState.fetchPosId();
+    final placeId = await _onboardingState.loadPosId();
+    if (placeId != null) {
+      if (!mounted) return;
 
-    _activationCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      _onboardingState.checkActivation();
-    });
+      final navigator = GoRouter.of(context);
+
+      navigator.replace('/$placeId');
+      return;
+    }
+
+    _activationCheckTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (timer) async {
+        final placeId = await _onboardingState.checkActivation();
+        if (placeId != null) {
+          if (!mounted) return;
+
+          final navigator = GoRouter.of(context);
+
+          navigator.replace('/$placeId');
+        }
+      },
+    );
   }
 
   @override
@@ -137,27 +154,27 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     final size = screenWidth > screenHeight ? screenHeight : screenWidth;
 
-    final isActivated =
-        context.select<OnboardingState, bool>((state) => state.isActivated);
+    // final isActivated =
+    //     context.select<OnboardingState, bool>((state) => state.isActivated);
     final posId =
         context.select<OnboardingState, String?>((state) => state.posId);
-    final placeId =
-        context.select<OnboardingState, String?>((state) => state.placeId);
+    // final placeId =
+    //     context.select<OnboardingState, String?>((state) => state.placeId);
 
-    if (isActivated && posId != null && !_isDialogShown) {
-      _isDialogShown = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (placeId != null && placeId.isNotEmpty) {
-          showPinEntryDialog(
-            context,
-            placeId,
-            screenHeight * 0.02,
-          ).then((_) {
-            _isDialogShown = false;
-          });
-        }
-      });
-    }
+    // if (isActivated && posId != null && !_isDialogShown) {
+    //   _isDialogShown = true;
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (placeId != null && placeId.isNotEmpty) {
+    //       showPinEntryDialog(
+    //         context,
+    //         placeId,
+    //         screenHeight * 0.02,
+    //       ).then((_) {
+    //         _isDialogShown = false;
+    //       });
+    //     }
+    //   });
+    // }
 
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

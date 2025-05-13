@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/routes/router.dart';
+import 'package:pay_pos/services/pay/localstorage.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:pay_pos/state/state.dart';
@@ -53,24 +54,43 @@ class _MyAppState extends State<MyApp> {
     applyThemeToAll: true,
   );
 
+  final localStorage = LocalStorageService();
+
   final _rootNavigatorKey = GlobalKey<NavigatorState>();
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
   final observers = <NavigatorObserver>[];
-  late GoRouter router;
+
+  GoRouter? _router;
 
   @override
   void initState() {
     super.initState();
 
-    router = createRouter(_rootNavigatorKey, _shellNavigatorKey, observers);
+    onLoad();
+  }
+
+  void onLoad() async {
+    final placeId = await localStorage.getPlaceId();
+
+    setState(() {
+      _router = createRouter(
+        _rootNavigatorKey,
+        _shellNavigatorKey,
+        observers,
+        placeId: placeId,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-  
+    if (_router == null) {
+      return const SizedBox();
+    }
+
     return CupertinoApp.router(
       debugShowCheckedModeBanner: false,
-      routerConfig: router,
+      routerConfig: _router!,
       theme: theme,
       title: 'Brussels Pay',
       locale: const Locale('en'),

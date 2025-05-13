@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:web3dart/web3dart.dart' show EthereumAddress;
 
-import 'transaction.dart';
-
 enum PaymentMode {
   terminal,
   qrCode,
@@ -30,10 +28,11 @@ class Order {
   final int placeId;
   final List<OrderItem> items;
   final OrderStatus status;
-  final String description;
+  final String? description;
   final String? txHash;
   final OrderType? type;
   final EthereumAddress? account;
+  final double fees;
 
   Order({
     required this.id,
@@ -48,45 +47,30 @@ class Order {
     this.txHash,
     this.type,
     this.account,
+    this.fees = 0,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
-      return Order(
-        id: 0,
-        createdAt: DateTime.now(),
-        total: 0,
-        due: 0,
-        placeId: 0,
-        items: [],
-        status: OrderStatus.pending,
-        description: '',
-      );
-    }
-
     return Order(
-      id: json['id'] ?? 0,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : DateTime.now(),
+      id: json['id'],
+      createdAt: DateTime.parse(json['created_at']),
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'])
           : null,
-      total: (json['total'] ?? 0).toDouble() / 100,
-      due: (json['due'] ?? 0).toDouble() / 100,
-      placeId: json['place_id'] ?? 0,
-      items: (json['items'] as List?)
-              ?.map((item) => item != null ? OrderItem.fromJson(item) : null)
-              .whereType<OrderItem>()
-              .toList() ??
-          [],
-      status: _parseOrderStatus(json['status'] ?? ''),
-      description: json['description'] ?? '',
+      total: json['total'].toDouble() / 100,
+      due: json['due'].toDouble() / 100,
+      placeId: json['place_id'],
+      items: (json['items'] as List)
+          .map((item) => OrderItem.fromJson(item))
+          .toList(),
+      status: _parseOrderStatus(json['status']),
+      description: json['description'],
       txHash: json['tx_hash'],
       type: _parseOrderType(json['type']),
       account: json['account'] != null
           ? EthereumAddress.fromHex(json['account'])
           : null,
+      fees: (json['fees'] ?? 0).toDouble() / 100,
     );
   }
 
@@ -116,8 +100,8 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      id: json['id'] ?? 0,
-      quantity: json['quantity'] ?? 0,
+      id: json['id'],
+      quantity: json['quantity'],
     );
   }
 }

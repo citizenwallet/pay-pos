@@ -4,17 +4,18 @@ class LocalStorageService {
   static const String posIdKey = "posId";
   static const String privateKey = "privateKey";
   static const String pinCode = "pinCode";
+  static const String placeIdKey = "placeId";
 
-  Future<String?> getPosId() async {
+  Future<void> setPlaceId(String id) async {
     final prefs = await SharedPreferences.getInstance();
-    final posId = prefs.getString(posIdKey);
-
-    return posId;
+    await prefs.setString(placeIdKey, id);
   }
 
-  Future<void> setPosId(String id) async {
+  Future<String?> getPlaceId() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(posIdKey, id);
+    final placeId = prefs.getString(placeIdKey);
+
+    return placeId;
   }
 
   Future<void> clearPosId() async {
