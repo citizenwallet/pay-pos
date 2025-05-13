@@ -25,6 +25,7 @@ class OnboardingState with ChangeNotifier {
   }
 
   Future<String?> getPosId() async {
+    // TODO: move to secure storage
     final storedPvtKey = await _preferencesService.getPvtKey();
     if (storedPvtKey == null) return null;
 
@@ -90,6 +91,7 @@ class OnboardingState with ChangeNotifier {
           await _posService.checkIdActivation(unactivatedPosId);
 
       await _preferencesService.setPlaceId(activatedPlaceId);
+      // TODO: move to secure storage
       await _preferencesService
           .setPvtKey(bytesToHex(_privateKey!.privateKey, include0x: false));
 

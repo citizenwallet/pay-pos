@@ -25,6 +25,7 @@ class OrdersState with ChangeNotifier {
       }
     } catch (e) {}
 
+    // TODO: move to secure storage
     final privateKey = await _preferencesService.getPvtKey();
     if (privateKey == null || privateKey.isEmpty) {
       throw Exception("Private key is null or empty");
@@ -102,6 +103,7 @@ class OrdersState with ChangeNotifier {
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
+      // TODO: move to secure storage
       final pk = await _preferencesService.getPvtKey();
       if (pk == null || pk.isEmpty) {
         throw Exception("Private key is null or empty");
