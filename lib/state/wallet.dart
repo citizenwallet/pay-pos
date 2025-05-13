@@ -1,31 +1,33 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:pay_pos/models/wallet.dart';
+import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/services/config/service.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
-import 'package:pay_pos/services/wallet/contracts/account_factory.dart';
-import 'package:pay_pos/services/wallet/models/chain.dart';
 import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WalletState with ChangeNotifier {
-  CWWallet? wallet;
-
   final ConfigService _configService = ConfigService();
-  final WalletService _walletService = WalletService();
   final PreferencesService _preferencesService = PreferencesService();
 
-// TODO: remove later
-  final String _credentials = dotenv.env['PRIVATE_KEY']!;
-  String get credentials => _credentials;
+  late Config _config;
 
-// TODO: remove later
-  EthereumAddress? _address;
-  EthereumAddress? get address => _address;
+  String _balance = '0';
+  int _decimals = 6;
+  double get doubleBalance =>
+      double.tryParse(_preferencesService.balance ?? _balance) ?? 0.0;
+  double get balance => doubleBalance / pow(10, _decimals);
 
   bool loading = false;
   bool error = false;
 
+  WalletState() {
+    init();
+  }
+
+  Timer? _pollingTimer;
   bool _mounted = true;
   void safeNotifyListeners() {
     if (_mounted) {
@@ -39,138 +41,42 @@ class WalletState with ChangeNotifier {
     super.dispose();
   }
 
-  Future<String?> createWallet() async {
-    loading = true;
-    error = false;
-    safeNotifyListeners();
-
+  Future<void> init() async {
     try {
       final config = await _configService.getLocalConfig();
-
       if (config == null) {
         throw Exception('Community not found in local asset');
       }
 
-      EthPrivateKey privateKey = EthPrivateKey.fromHex(credentials);
-      final accFactory = await accountFactoryServiceFromConfig(config);
-      final address = await accFactory.getAddress(privateKey.address.hexEip55);
+      await config.initContracts();
 
-      final token = config.getPrimaryToken();
-
-      _address = address;
-      safeNotifyListeners();
-
-      wallet = CWWallet(
-        '0.0',
-        name: 'New ${token.symbol} Account',
-        address: address.hexEip55,
-        alias: config.community.alias,
-        account: address.hexEip55,
-        currencyName: token.name,
-        symbol: token.symbol,
-        currencyLogo: config.community.logo,
-        decimalDigits: token.decimals,
-      );
-
-      await _preferencesService.setLastWallet(address.hexEip55);
-      await _preferencesService.setLastAlias(config.community.alias);
-
-      return address.hexEip55;
-    } catch (_) {
-      error = true;
-      safeNotifyListeners();
-    } finally {
-      loading = false;
-      safeNotifyListeners();
-    }
-    return null;
-  }
-
-  Future<String?> openWallet() async {
-    loading = true;
-    error = false;
-    safeNotifyListeners();
-
-    try {
-      final config = await _configService.getLocalConfig();
-
-      if (config == null) {
-        throw Exception('Community not found in local asset');
-      }
-
-      EthPrivateKey privateKey = EthPrivateKey.fromHex(credentials);
-      final accFactory = await accountFactoryServiceFromConfig(config);
-      final address = await accFactory.getAddress(privateKey.address.hexEip55);
-
-      final token = config.getPrimaryToken();
-
-      final nativeCurrency = NativeCurrency(
-        name: token.name,
-        symbol: token.symbol,
-        decimals: token.decimals,
-      );
-
-      await _walletService.init(address, privateKey, nativeCurrency, config,
-          onFinished: (bool success) {
-        debugPrint('wallet service init: $success');
-      });
-
-      wallet = CWWallet(
-        '0.0',
-        name: '${config.community.alias} Wallet',
-        address: address.hexEip55,
-        alias: config.community.alias,
-        account: address.hexEip55,
-        currencyName: token.name,
-        symbol: token.symbol,
-        currencyLogo: config.community.logo,
-        decimalDigits: nativeCurrency.decimals,
-      );
-
-      updateBalance();
-
-      return address.hexEip55;
-    } catch (e, s) {
-      error = true;
-      safeNotifyListeners();
-      debugPrint('error: $e');
-      debugPrint('stack trace: $s');
-    } finally {
-      loading = false;
-      safeNotifyListeners();
-    }
-
-    return null;
-  }
-
-  Future<bool> accountExists() async {
-    try {
-      if (address == null) {
-        throw Exception('Wallet not created');
-      }
-
-      loading = true;
-      error = false;
-      safeNotifyListeners();
-
-      final exists =
-          await _walletService.accountExists(account: address!.hexEip55);
-      return exists;
+      _config = config;
+      _decimals = config.getPrimaryToken().decimals;
     } catch (e, s) {
       debugPrint('error: $e');
       debugPrint('stack trace: $s');
-      error = true;
-      safeNotifyListeners();
-    } finally {
-      loading = false;
-      safeNotifyListeners();
     }
-    return false;
   }
 
-  Future<void> updateBalance({String? addr}) async {
-    final balance = await _walletService.getBalance(addr: addr);
-    wallet?.setBalance(balance);
+  Future<void> startBalancePolling(EthereumAddress address) async {
+    stopBalancePolling();
+
+    _pollingTimer = Timer.periodic(
+      Duration(seconds: 1),
+      (_) {
+        updateBalance(address);
+      },
+    );
+  }
+
+  Future<void> stopBalancePolling() async {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  Future<void> updateBalance(EthereumAddress address) async {
+    _balance = await getBalance(_config, address);
+    await _preferencesService.setBalance(_balance);
     safeNotifyListeners();
   }
 }

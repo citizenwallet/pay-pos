@@ -1,17 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/models/place.dart';
+import 'package:pay_pos/state/wallet.dart';
 import 'package:provider/provider.dart';
 
 //models
 import 'package:pay_pos/models/user.dart';
 
 //state
-import 'package:pay_pos/state/wallet.dart';
+import 'package:pay_pos/services/wallet/wallet.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/profile_circle.dart';
-
 
 class ProfileBar extends StatefulWidget {
   final Place place;
@@ -33,13 +33,11 @@ class _ProfileBarState extends State<ProfileBar> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     CupertinoTheme.of(context);
 
-    final walletState = context.watch<WalletState>();
-    final balance = walletState.wallet?.formattedBalance.toStringAsFixed(2);
+    final balance = context.watch<WalletState>().balance;
 
     final place = widget.place;
 
@@ -78,7 +76,7 @@ class _ProfileBarState extends State<ProfileBar> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Balance(balance: balance ?? '0.00'),
+                      Balance(balance: balance.toStringAsFixed(2)),
                       const SizedBox(width: 16),
                     ],
                   )

@@ -3,9 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/routes/router.dart';
-import 'package:pay_pos/services/pay/localstorage.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
-import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:pay_pos/state/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,8 +16,6 @@ void main() async {
 
   // await MainDB().init('main');
   await PreferencesService().init(await SharedPreferences.getInstance());
-
-  WalletService();
 
   runApp(provideAppState(const MyApp()));
 }
@@ -54,7 +50,7 @@ class _MyAppState extends State<MyApp> {
     applyThemeToAll: true,
   );
 
-  final localStorage = LocalStorageService();
+  final preferencesService = PreferencesService();
 
   final _rootNavigatorKey = GlobalKey<NavigatorState>();
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -70,7 +66,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void onLoad() async {
-    final placeId = await localStorage.getPlaceId();
+    final placeId = await preferencesService.getPlaceId();
 
     setState(() {
       _router = createRouter(

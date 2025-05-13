@@ -11,7 +11,6 @@ import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 //services
-import 'package:pay_pos/services/pay/localstorage.dart';
 
 //widgets
 import 'package:pay_pos/widgets/short_button.dart';
@@ -289,92 +288,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> showPinEntryDialog(
-    BuildContext context,
-    String placeId,
-    double height,
-  ) async {
-    List<TextEditingController> controllers = List.generate(
-      4,
-      (index) => TextEditingController(),
-    );
-    List<FocusNode> focusNodes = List.generate(
-      4,
-      (index) => FocusNode(),
-    );
-
-    await showCupertinoDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return CupertinoAlertDialog(
-          title: Text("Set Up PIN"),
-          content: Column(
-            children: [
-              SizedBox(height: height),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) {
-                  return Container(
-                    width: 40,
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    child: CupertinoTextField(
-                      controller: controllers[index],
-                      focusNode: focusNodes[index],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: CupertinoColors.systemGrey,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 3) {
-                          focusNodes[index + 1].requestFocus();
-                        }
-                      },
-                    ),
-                  );
-                }),
-              ),
-            ],
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () async {
-                String enteredPin =
-                    controllers.map((controller) => controller.text).join();
-                if (enteredPin.length == 4) {
-                  await LocalStorageService().savePin(enteredPin);
-                  Navigator.pop(context);
-
-                  context.go('/$placeId');
-                } else {
-                  showCupertinoDialog(
-                    context: context,
-                    builder: (context) => CupertinoAlertDialog(
-                      title: Text("Invalid PIN"),
-                      content: Text("Enter a valid 4-digit PIN"),
-                      actions: [
-                        CupertinoDialogAction(
-                          child: Text("OK"),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
-              child: Text("Save"),
-            ),
-          ],
-        );
-      },
     );
   }
 

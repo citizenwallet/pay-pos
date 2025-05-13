@@ -1,16 +1,14 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/orders.dart';
+import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/sigauth.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:pay_pos/services/pay/localstorage.dart';
 
 class OrdersState with ChangeNotifier {
+  final PreferencesService _preferencesService = PreferencesService();
   final OrdersService ordersService;
   late final SignatureAuthService signatureAuthService;
 
@@ -27,7 +25,7 @@ class OrdersState with ChangeNotifier {
       }
     } catch (e) {}
 
-    final privateKey = await LocalStorageService().getPvtKey();
+    final privateKey = await _preferencesService.getPvtKey();
     if (privateKey == null || privateKey.isEmpty) {
       throw Exception("Private key is null or empty");
     }

@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:pay_pos/utils/delay.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:pay_pos/services/pay/pos.dart';
-import 'package:pay_pos/services/pay/localstorage.dart';
+import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:web3dart/crypto.dart';
 
 class OnboardingState with ChangeNotifier {
   String? posId;
   bool loading = false;
 
-  final LocalStorageService _localStorage = LocalStorageService();
+  final PreferencesService _preferencesService = PreferencesService();
   final POSService _posService = POSService();
   EthPrivateKey? _privateKey;
 
@@ -25,7 +25,7 @@ class OnboardingState with ChangeNotifier {
   }
 
   Future<String?> getPosId() async {
-    final storedPvtKey = await _localStorage.getPvtKey();
+    final storedPvtKey = await _preferencesService.getPvtKey();
     if (storedPvtKey == null) return null;
 
     _privateKey = EthPrivateKey.fromHex(storedPvtKey);
@@ -37,7 +37,7 @@ class OnboardingState with ChangeNotifier {
     try {
       final activatedPlaceId = await _posService.checkIdActivation(id);
 
-      await _localStorage.setPlaceId(activatedPlaceId);
+      await _preferencesService.setPlaceId(activatedPlaceId);
 
       return activatedPlaceId;
     } catch (e) {
@@ -52,7 +52,7 @@ class OnboardingState with ChangeNotifier {
       notifyListeners();
 
       final storedPosId = await getPosId();
-      final storedPlaceId = await _localStorage.getPlaceId();
+      final storedPlaceId = await _preferencesService.getPlaceId();
       if (storedPosId != null && storedPlaceId != null) {
         return storedPlaceId;
       }
@@ -73,7 +73,7 @@ class OnboardingState with ChangeNotifier {
 
   Future<String?> checkActivation() async {
     final storedPosId = await getPosId();
-    final storedPlaceId = await _localStorage.getPlaceId();
+    final storedPlaceId = await _preferencesService.getPlaceId();
     if (storedPosId != null && storedPlaceId != null) {
       return storedPlaceId;
     }
@@ -89,8 +89,8 @@ class OnboardingState with ChangeNotifier {
       final activatedPlaceId =
           await _posService.checkIdActivation(unactivatedPosId);
 
-      await _localStorage.setPlaceId(activatedPlaceId);
-      await _localStorage
+      await _preferencesService.setPlaceId(activatedPlaceId);
+      await _preferencesService
           .setPvtKey(bytesToHex(_privateKey!.privateKey, include0x: false));
 
       return activatedPlaceId;

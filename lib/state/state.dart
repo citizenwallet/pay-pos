@@ -17,9 +17,6 @@ Widget provideAppState(
         ChangeNotifierProvider(
           create: (_) => AppState(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => WalletState(),
-        ),
       ],
       builder: builder,
       child: child,
@@ -35,6 +32,10 @@ Widget provideState(
   return MultiProvider(
     key: Key(placeId),
     providers: [
+      ChangeNotifierProvider(
+        key: Key('wallet-$placeId'),
+        create: (_) => WalletState(),
+      ),
       ChangeNotifierProvider(
         key: Key('orders-$placeId'),
         create: (_) => OrdersState(placeId: placeId),

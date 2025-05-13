@@ -5,7 +5,7 @@ import 'dart:async';
 
 //models
 import 'package:pay_pos/screens/settings/settings_profile_bar.dart';
-import 'package:pay_pos/services/pay/localstorage.dart';
+import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/state/orders.dart';
 
 //state
@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late PlaceOrderState _placeOrderState;
   late OrdersState _ordersState;
   late POSState _posState;
-  final localStorage = LocalStorageService();
+  final preferencesService = PreferencesService();
   // late NotificationsLogic _notificationsLogic;
 
   @override
@@ -75,16 +75,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _onDeactivatePressed() async {
-    final pk = await localStorage.getPvtKey();
+    final pk = await preferencesService.getPvtKey();
     if (pk != null) {
       final posId = EthPrivateKey.fromHex(pk).address.hexEip55;
 
       await _posState.updatePOS(posId: posId);
     }
 
-    await localStorage.clearPosId();
-    await localStorage.clearPin();
-    await localStorage.clearPvtKey();
+    await preferencesService.clearPosId();
+    await preferencesService.clearPin();
+    await preferencesService.clearPvtKey();
 
     context.go('/');
   }

@@ -3,9 +3,9 @@ import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/places.dart';
+import 'package:web3dart/web3dart.dart';
 
 class PlaceOrderState with ChangeNotifier {
-
   final PlacesService placesService = PlacesService();
 
   bool _mounted = true;
@@ -43,7 +43,7 @@ class PlaceOrderState with ChangeNotifier {
   bool loading = false;
   bool error = false;
 
-  Future<void> fetchPlaceandMenu() async {
+  Future<EthereumAddress?> fetchPlaceandMenu() async {
     try {
       loading = true;
       error = false;
@@ -59,12 +59,16 @@ class PlaceOrderState with ChangeNotifier {
           placeMenu!.categories.map((category) => GlobalKey()).toList();
 
       safeNotifyListeners();
+
+      loading = false;
+      safeNotifyListeners();
+      return EthereumAddress.fromHex(_account!);
     } catch (e) {
       error = true;
-      safeNotifyListeners();
-    } finally {
       loading = false;
       safeNotifyListeners();
     }
+
+    return null;
   }
 }

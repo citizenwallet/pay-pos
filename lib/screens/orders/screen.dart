@@ -11,7 +11,6 @@ import 'package:pay_pos/models/place.dart';
 import 'package:pay_pos/screens/orders/footer.dart';
 import 'package:pay_pos/screens/orders/order_list_item.dart';
 import 'package:pay_pos/screens/orders/profile_bar.dart';
-import 'package:pay_pos/services/pay/localstorage.dart';
 
 //state
 import 'package:pay_pos/state/orders.dart';
@@ -47,37 +46,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ordersState = context.read<OrdersState>();
       _walletState = context.read<WalletState>();
+      _ordersState = context.read<OrdersState>();
       _placeOrderState = context.read<PlaceOrderState>();
       onLoad();
-      startPolling();
-    });
-  }
-
-  void startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      _ordersState.fetchOrders();
-      _walletState.updateBalance(
-          addr: _placeOrderState.place?.place.account[0]);
     });
   }
 
   Future<void> onLoad() async {
-    await _placeOrderState.fetchPlaceandMenu();
-    await _ordersState.fetchOrders();
-    await _walletState.openWallet();
-    await _walletState.updateBalance(
-        addr: _placeOrderState.place?.place.account[0]);
+    final account = await _placeOrderState.fetchPlaceandMenu();
+    if (account != null) {
+      _walletState.startBalancePolling(account);
+    }
+
+    _ordersState.fetchOrders();
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _ordersState.fetchOrders();
+    });
   }
 
   void goBack() {
-    Navigator.pop(context);
+    GoRouter.of(context).pop();
   }
 
   @override
   void dispose() {
     _pollingTimer?.cancel();
+    _walletState.stopBalancePolling();
 
     amountFocusNode.dispose();
     messageFocusNode.dispose();
@@ -123,8 +119,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     final place = context.select((PlaceOrderState state) => state.place);
 
-    print(place);
-
     final orders = context.select((OrdersState state) => state.orders);
 
     if (place == null) {
@@ -142,11 +136,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
             children: [
               GestureDetector(
                 onTap: () {
-                  showPinEntryDialog(
-                    context,
-                    widget.placeId,
-                    screenHeight * 0.02,
-                  );
+                  // showPinEntryDialog(
+                  //   context,
+                  //   widget.placeId,
+                  //   screenHeight * 0.02,
+                  // );
                 },
                 child: ProfileBar(
                   place: place.place,
@@ -185,124 +179,124 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 }
 
-class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
-  final Place user;
+// class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
+//   final Place user;
 
-  ProfileBarDelegate({required this.user});
+//   ProfileBarDelegate({required this.user});
 
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return ProfileBar(
-      place: user,
-    );
-  }
+//   @override
+//   Widget build(
+//       BuildContext context, double shrinkOffset, bool overlapsContent) {
+//     return ProfileBar(
+//       place: user,
+//     );
+//   }
 
-  @override
-  double get maxExtent => 95.0; // Maximum height of header
+//   @override
+//   double get maxExtent => 95.0; // Maximum height of header
 
-  @override
-  double get minExtent => 95.0; // Minimum height of header
+//   @override
+//   double get minExtent => 95.0; // Minimum height of header
 
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      true;
-}
+//   @override
+//   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+//       true;
+// }
 
-Future<void> showPinEntryDialog(
-  BuildContext context,
-  String placeId,
-  double height,
-) async {
-  List<TextEditingController> controllers =
-      List.generate(4, (index) => TextEditingController());
-  List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+// Future<void> showPinEntryDialog(
+//   BuildContext context,
+//   String placeId,
+//   double height,
+// ) async {
+//   List<TextEditingController> controllers =
+//       List.generate(4, (index) => TextEditingController());
+//   List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
 
-  await showCupertinoDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (context) {
-      return CupertinoAlertDialog(
-        title: Text("Enter PIN"),
-        content: Column(
-          children: [
-            SizedBox(height: height),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
-                return Container(
-                  width: 40,
-                  margin: EdgeInsets.symmetric(horizontal: 5),
-                  child: CupertinoTextField(
-                    controller: controllers[index],
-                    focusNode: focusNodes[index],
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    maxLength: 1,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: CupertinoColors.systemGrey,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty && index < 3) {
-                        focusNodes[index + 1].requestFocus();
-                      }
-                    },
-                  ),
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () async {
-              String enteredPin =
-                  controllers.map((controller) => controller.text).join();
-              if (enteredPin.length == 4) {
-                bool verify = await LocalStorageService().verifyPin(enteredPin);
+//   await showCupertinoDialog(
+//     context: context,
+//     barrierDismissible: true,
+//     builder: (context) {
+//       return CupertinoAlertDialog(
+//         title: Text("Enter PIN"),
+//         content: Column(
+//           children: [
+//             SizedBox(height: height),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: List.generate(4, (index) {
+//                 return Container(
+//                   width: 40,
+//                   margin: EdgeInsets.symmetric(horizontal: 5),
+//                   child: CupertinoTextField(
+//                     controller: controllers[index],
+//                     focusNode: focusNodes[index],
+//                     keyboardType: TextInputType.number,
+//                     textAlign: TextAlign.center,
+//                     maxLength: 1,
+//                     decoration: BoxDecoration(
+//                       border: Border.all(
+//                         color: CupertinoColors.systemGrey,
+//                       ),
+//                       borderRadius: BorderRadius.circular(6),
+//                     ),
+//                     onChanged: (value) {
+//                       if (value.isNotEmpty && index < 3) {
+//                         focusNodes[index + 1].requestFocus();
+//                       }
+//                     },
+//                   ),
+//                 );
+//               }),
+//             ),
+//           ],
+//         ),
+//         actions: [
+//           CupertinoDialogAction(
+//             onPressed: () async {
+//               String enteredPin =
+//                   controllers.map((controller) => controller.text).join();
+//               if (enteredPin.length == 4) {
+//                 bool verify = await LocalStorageService().verifyPin(enteredPin);
 
-                if (verify) {
-                  Navigator.pop(context);
+//                 if (verify) {
+//                   Navigator.pop(context);
 
-                  context.go('/$placeId/settings');
-                } else {
-                  showCupertinoDialog(
-                    context: context,
-                    builder: (context) => CupertinoAlertDialog(
-                      title: Text("Invalid PIN"),
-                      content: Text("Enter a valid 4-digit PIN"),
-                      actions: [
-                        CupertinoDialogAction(
-                          child: Text("OK"),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              } else {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                    title: Text("Invalid PIN"),
-                    content: Text("Enter a valid 4-digit PIN"),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: Text("OK"),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-            child: Text("Confirm"),
-          ),
-        ],
-      );
-    },
-  );
-}
+//                   context.go('/$placeId/settings');
+//                 } else {
+//                   showCupertinoDialog(
+//                     context: context,
+//                     builder: (context) => CupertinoAlertDialog(
+//                       title: Text("Invalid PIN"),
+//                       content: Text("Enter a valid 4-digit PIN"),
+//                       actions: [
+//                         CupertinoDialogAction(
+//                           child: Text("OK"),
+//                           onPressed: () => Navigator.pop(context),
+//                         ),
+//                       ],
+//                     ),
+//                   );
+//                 }
+//               } else {
+//                 showCupertinoDialog(
+//                   context: context,
+//                   builder: (context) => CupertinoAlertDialog(
+//                     title: Text("Invalid PIN"),
+//                     content: Text("Enter a valid 4-digit PIN"),
+//                     actions: [
+//                       CupertinoDialogAction(
+//                         child: Text("OK"),
+//                         onPressed: () => Navigator.pop(context),
+//                       ),
+//                     ],
+//                   ),
+//                 );
+//               }
+//             },
+//             child: Text("Confirm"),
+//           ),
+//         ],
+//       );
+//     },
+//   );
+// }
