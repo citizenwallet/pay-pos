@@ -49,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void onLoad() async {
     await _onboardingState.fetchPosId();
 
-    _activationCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _activationCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       _onboardingState.checkActivation();
     });
   }
@@ -135,6 +135,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final size = screenWidth > screenHeight ? screenHeight : screenWidth;
+
     final isActivated =
         context.select<OnboardingState, bool>((state) => state.isActivated);
     final posId =
@@ -168,32 +170,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // QR Code
-                        QR(
-                          data: posId != null
-                              ? "$_activationBaseUrl/pos/activate/$posId"
-                              : "",
-                          logo: 'assets/logo.png',
-                          size: 240,
-                          padding: const EdgeInsets.all(14),
-                        ),
-
-                        // Logo on top of QR
-                        Positioned(
-                          child: Container(
-                            width: 85,
-                            height: 85,
-                            decoration: BoxDecoration(
-                              color: theme.scaffoldBackgroundColor,
-                            ),
-                            alignment: Alignment.center,
-                            child: CoinLogo(size: 70),
-                          ),
-                        ),
-                      ],
+                    QR(
+                      data: posId != null
+                          ? "$_activationBaseUrl/pos/activate/$posId"
+                          : "",
+                      logo: 'assets/logo.png',
+                      size: size * 0.8,
+                      padding: const EdgeInsets.all(20),
                     ),
                     const SizedBox(height: 10),
                     Text(
