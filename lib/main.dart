@@ -4,7 +4,6 @@ import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/routes/router.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
-import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:pay_pos/state/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,8 +16,6 @@ void main() async {
 
   // await MainDB().init('main');
   await PreferencesService().init(await SharedPreferences.getInstance());
-
-  WalletService();
 
   runApp(provideAppState(const MyApp()));
 }
@@ -53,29 +50,43 @@ class _MyAppState extends State<MyApp> {
     applyThemeToAll: true,
   );
 
+  final preferencesService = PreferencesService();
+
   final _rootNavigatorKey = GlobalKey<NavigatorState>();
   final _shellNavigatorKey = GlobalKey<NavigatorState>();
   final observers = <NavigatorObserver>[];
-  late GoRouter router;
+
+  GoRouter? _router;
 
   @override
   void initState() {
     super.initState();
 
-    router = createRouter(_rootNavigatorKey, _shellNavigatorKey, observers);
+    onLoad();
+  }
+
+  void onLoad() async {
+    final placeId = await preferencesService.getPlaceId();
+
+    setState(() {
+      _router = createRouter(
+        _rootNavigatorKey,
+        _shellNavigatorKey,
+        observers,
+        placeId: placeId,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    if (_router == null) {
+      return const SizedBox();
+    }
+
     return CupertinoApp.router(
       debugShowCheckedModeBanner: false,
-      routerConfig: router,
+      routerConfig: _router!,
       theme: theme,
       title: 'Brussels Pay',
       locale: const Locale('en'),

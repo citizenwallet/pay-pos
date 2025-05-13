@@ -1,119 +1,105 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/state/onboarding.dart';
-import 'package:pay_pos/state/state.dart';
+import 'package:pay_pos/models/order.dart';
+import 'package:pay_pos/screens/order_pay/screen.dart';
+import 'package:pay_pos/screens/orders/order/order/screen.dart';
+import 'package:pay_pos/screens/settings/screen.dart';
 import 'package:provider/provider.dart';
 
 // screens
-import 'package:pay_pos/screens/home/screen.dart';
 import 'package:pay_pos/screens/onboarding/screen.dart';
-import 'package:pay_pos/screens/account/view/screen.dart';
-import 'package:pay_pos/screens/account/edit/screen.dart';
-import 'package:pay_pos/screens/interactions/place/screen.dart';
-import 'package:pay_pos/screens/interactions/place/menu/screen.dart';
-import 'package:pay_pos/screens/interactions/user/screen.dart';
+import 'package:pay_pos/screens/interactions/menu/screen.dart';
+import 'package:pay_pos/screens/orders/screen.dart';
 
 // state
-import 'package:pay_pos/state/checkout.dart';
-import 'package:pay_pos/state/orders_with_place/orders_with_place.dart';
-import 'package:pay_pos/state/transactions_with_user/transactions_with_user.dart';
+import 'package:pay_pos/state/onboarding.dart';
+import 'package:pay_pos/state/state.dart';
 
 GoRouter createRouter(
   GlobalKey<NavigatorState> rootNavigatorKey,
   GlobalKey<NavigatorState> shellNavigatorKey,
   List<NavigatorObserver> observers, {
-  String? userId,
-}) =>
-    GoRouter(
-      initialLocation: userId != null ? '/$userId' : '/',
-      debugLogDiagnostics: kDebugMode,
-      navigatorKey: rootNavigatorKey,
-      observers: observers,
-      routes: [
-        GoRoute(
-          name: 'Onboarding',
-          path: '/',
-          parentNavigatorKey: rootNavigatorKey,
-          builder: (context, state) {
-            return ChangeNotifierProvider(
-              create: (_) => OnboardingState(),
-              child: const OnboardingScreen(),
-            );
-          },
-        ),
-        ShellRoute(
-          builder: (context, state, child) =>
-              provideAccountState(context, state, child),
-          routes: [
-            GoRoute(
-              name: 'Home',
-              path: '/:account',
-              builder: (context, state) {
-                return const HomeScreen();
-              },
-            ),
-            GoRoute(
-              name: 'MyAccount',
-              path: '/:account/my-account',
-              builder: (context, state) {
-                return const MyAccount();
-              },
-              routes: [
-                GoRoute(
-                  name: 'EditMyAccount',
-                  path: '/edit',
-                  builder: (context, state) {
-                    return const EditAccountScreen();
-                  },
-                ),
-              ],
-            ),
-            ShellRoute(
-              builder: (context, state, child) =>
-                  providePlaceState(context, state, child),
-              routes: [
-                GoRoute(
-                  name: 'InteractionWithPlace',
-                  path: '/:account/place/:slug',
-                  builder: (context, state) {
-                    final myAddress = state.pathParameters['account']!;
-                    final slug = state.pathParameters['slug']!;
+  String? placeId,
+}) {
+  return GoRouter(
+    initialLocation: placeId != null ? '/$placeId' : '/',
+    debugLogDiagnostics: kDebugMode,
+    navigatorKey: rootNavigatorKey,
+    observers: observers,
+    routes: [
+      GoRoute(
+        name: 'Onboarding',
+        path: '/',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          return ChangeNotifierProvider(
+            create: (_) => OnboardingState(),
+            child: const OnboardingScreen(),
+          );
+        },
+      ),
+      ShellRoute(
+        builder: (context, state, child) => provideState(context, state, child),
+        routes: [
+          GoRoute(
+            name: 'Orders',
+            path: '/:placeId',
+            builder: (context, state) {
+              final id = placeId ?? state.pathParameters['placeId']!;
+              return OrdersScreen(
+                placeId: id,
+              );
+            },
+          ),
+          GoRoute(
+            name: 'Order',
+            path: '/:placeId/order/:orderId',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              final order = extra['order'] as Order;
 
-                    return InteractionWithPlaceScreen(
-                      slug: slug,
-                      myAddress: myAddress,
-                    );
-                  },
-                  routes: [
-                    GoRoute(
-                      name: 'PlaceMenu',
-                      path: '/menu',
-                      builder: (context, state) {
-                        return const PlaceMenuScreen();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            GoRoute(
-              name: 'InteractionWithUser',
-              path: '/:account/user/:withUser',
-              builder: (context, state) {
-                final myAddress = state.pathParameters['account']!;
-                final userAddress = state.pathParameters['withUser']!;
+              return OrderScreen(
+                order: order,
+              );
+            },
+          ),
+          GoRoute(
+            name: 'Settings',
+            path: '/:placeId/settings',
+            builder: (context, state) {
+              return SettingsScreen();
+            },
+          ),
+          GoRoute(
+            name: 'InteractionWithPlace',
+            path: '/:placeId/menu',
+            builder: (context, state) {
+              final id = placeId ?? state.pathParameters['placeId']!;
+              return PlaceMenuScreen(
+                placeId: id,
+              );
+            },
+          ),
+          GoRoute(
+            name: 'OrderPay',
+            path: '/:placeId/order/:orderId/pay',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
 
-                return ChangeNotifierProvider(
-                  create: (_) => TransactionsWithUserState(
-                    withUserAddress: userAddress,
-                    myAddress: myAddress,
-                  ),
-                  child: const InteractionWithUserScreen(),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
-    );
+              final items = extra?['items'] as List<Map<String, dynamic>>?;
+              final amount = extra?['amount'] as double?;
+              final description = extra?['description'] as String?;
+
+              return OrderPayScreen(
+                items: items ?? [],
+                amount: amount ?? 0.0,
+                description: description ?? '',
+              );
+            },
+          ),
+        ],
+      ),
+    ],
+  );
+}

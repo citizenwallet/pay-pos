@@ -15,49 +15,71 @@ class PreferencesService {
     await _preferences.clear();
   }
 
-  // save the chain id
-  Future setChainId(int chainId) async {
-    await _preferences.setInt('chainId', chainId);
-  }
-
-  int get chainId => _preferences.getInt('chainId') ?? 1;
-
-  // save chain id for a given alias
-  Future setChainIdForAlias(String alias, String chainId) async {
-    await _preferences.setString('chainId_$alias', chainId);
-  }
-
-  String? getChainIdForAlias(String alias) {
-    return _preferences.getString('chainId_$alias');
-  }
-
   // saved balance
-  Future setBalance(String key, String value) async {
-    await _preferences.setString('balance_$key', value);
+  Future setBalance(String value) async {
+    await _preferences.setString('balance', value);
   }
 
-  String? getBalance(String key) {
-    return _preferences.getString('balance_$key');
+  String? get balance => _preferences.getString('balance');
+
+  static const String posIdKey = "posId";
+  static const String privateKey = "privateKey";
+  static const String pinCode = "pinCode";
+  static const String placeIdKey = "placeId";
+
+  Future<void> setPlaceId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(placeIdKey, id);
   }
 
-  // save account address for given key
-  Future setAccountAddress(String key, String accaddress) async {
-    await _preferences.setString('accountAddress_$key', accaddress);
+  Future<String?> getPlaceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final placeId = prefs.getString(placeIdKey);
+
+    return placeId;
   }
 
-  String? getAccountAddress(String key) {
-    return _preferences.getString('accountAddress_$key');
+  Future<void> clearPosId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(posIdKey);
   }
 
-  Future setLastAlias(String alias) async {
-    await _preferences.setString('lastAlias', alias);
+  Future<void> savePin(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(pinCode, pin);
   }
 
-  String? get lastAlias => _preferences.getString('lastAlias');
+  Future<String?> getPin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pin = prefs.getString(pinCode);
 
-  Future setLastWallet(String address) async {
-    await _preferences.setString('lastWallet', address);
+    return pin;
   }
 
-  String? get lastWallet => _preferences.getString('lastWallet');
+  Future<bool> verifyPin(String enteredPin) async {
+    final savedPin = await getPin();
+    return savedPin == enteredPin;
+  }
+
+  Future<void> clearPin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(pinCode);
+  }
+
+  Future<String?> getPvtKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pvtkey = prefs.getString(privateKey);
+
+    return pvtkey;
+  }
+
+  Future<void> setPvtKey(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(privateKey, key);
+  }
+
+  Future<void> clearPvtKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(privateKey);
+  }
 }

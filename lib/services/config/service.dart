@@ -25,8 +25,8 @@ class ConfigService {
 
   Future<Config?> getLocalConfig() async {
     try {
-      final localConfig = jsonDecode(await rootBundle.loadString(
-          'assets/config/v$version/$communityConfigFileName.json'));
+      final localConfig = jsonDecode(await rootBundle
+          .loadString('assets/config/v$version/$communityConfigFileName.json'));
 
       final config = Config.fromJson(localConfig);
 

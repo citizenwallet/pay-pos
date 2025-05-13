@@ -20,7 +20,16 @@ class PlaceWithMenu {
     final place = Place.fromJson(placeData);
 
     // Parse profile data
-    final profileData = json['profile'] as Map<String, dynamic>;
+    // final profileData = json['profile'] as Map<String, dynamic>;
+
+    final profileData = {
+      'account': "",
+      'username': "",
+      'name': "",
+      'description': "",
+      'imageUrl': "",
+      'placeId': json['place_id'],
+    };
 
     final profile = User.fromJson(profileData);
 
