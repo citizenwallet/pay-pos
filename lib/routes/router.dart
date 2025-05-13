@@ -83,15 +83,16 @@ GoRouter createRouter(
           ),
           GoRoute(
             name: 'OrderPay',
-            path: '/:placeId/:type/pay',
+            path: '/:placeId/order/:orderId/pay',
             builder: (context, state) {
-              final type = state.pathParameters['type'];
               final extra = state.extra as Map<String, dynamic>?;
+
+              final items = extra?['items'] as List<Map<String, dynamic>>?;
               final amount = extra?['amount'] as double?;
               final description = extra?['description'] as String?;
 
               return OrderPayScreen(
-                isMenu: type == 'menu',
+                items: items ?? [],
                 amount: amount ?? 0.0,
                 description: description ?? '',
               );

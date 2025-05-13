@@ -52,6 +52,7 @@ class OrdersService {
     required String description,
     required double total,
     required String account,
+    required String posId,
     required Map<String, String> headers,
   }) async {
     final int totalInCents = (total * 100).round();
@@ -68,8 +69,11 @@ class OrdersService {
         'description': description.trim(),
         'total': totalInCents,
         'account': account,
+        'posId': posId,
         'type': "pos",
       };
+
+      print('body, $body');
 
       final response = await apiService.post(
         url: url,

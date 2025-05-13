@@ -83,29 +83,41 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _onPayPressed(
       String description, double total, String account) async {
-    await _ordersState.createOrder(
+    print('pay pressed, $description, $total, $account');
+    final orderId = await _ordersState.createOrder(
       items: [],
       description: description,
       total: total,
       account: account,
     );
 
-    context.go('/${widget.placeId}/order/pay', extra: {
+    if (orderId == null) {
+      print('order creation failed');
+      return;
+    }
+
+    print('order created');
+
+    if (!mounted) return;
+
+    final navigator = GoRouter.of(context);
+
+    navigator.push('/${widget.placeId}/order/$orderId/pay', extra: {
       'amount': total,
       'description': description,
     });
   }
 
   void handleOrderPressed(Order order) {
-    context.push('/${widget.placeId}/order/${order.id}', extra: {
+    final navigator = GoRouter.of(context);
+
+    navigator.push('/${widget.placeId}/order/${order.id}', extra: {
       'order': order,
     });
   }
 
-  void sendMessage(double amount, String? message) {
-    final account = _placeOrderState.place?.place.account[0];
-
-    _onPayPressed(message!, amount, account!);
+  void sendMessage(double amount, String? message, String account) {
+    _onPayPressed(message!, amount, account);
   }
 
   void _dismissKeyboard() {
@@ -169,7 +181,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 amountFocusNode: amountFocusNode,
                 messageFocusNode: messageFocusNode,
                 display: Display.amountAndMenu,
-                place: null,
+                place: place.place,
               ),
             ],
           ),

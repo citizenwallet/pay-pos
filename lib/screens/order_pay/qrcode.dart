@@ -16,9 +16,8 @@ import 'package:pay_pos/state/checkout.dart';
 //screens
 import 'package:pay_pos/screens/interactions/menu/selected_items.dart';
 
-
 class QRCodeContent extends StatelessWidget {
-  final bool isMenu;
+  final List<Map<String, dynamic>> items;
   final double amount;
   final String description;
   final Checkout checkout;
@@ -32,7 +31,7 @@ class QRCodeContent extends StatelessWidget {
 
   const QRCodeContent({
     super.key,
-    required this.isMenu,
+    required this.items,
     required this.amount,
     required this.description,
     required this.checkout,
@@ -163,7 +162,7 @@ class QRCodeContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Balance(
-              balance: !isMenu
+              balance: items.isEmpty
                   ? amount.toStringAsFixed(2)
                   : checkout.total.toStringAsFixed(2),
               fontSize: (width * 0.065),
@@ -172,7 +171,7 @@ class QRCodeContent extends StatelessWidget {
           ],
         ),
         SizedBox(height: height * 0.03),
-        !isMenu
+        items.isEmpty
             ? Text(
                 description,
                 style: TextStyle(

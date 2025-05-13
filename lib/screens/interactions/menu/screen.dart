@@ -75,14 +75,18 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
   Future<void> _onPayPressed(List<Map<String, dynamic>> items,
       String description, double total, String account) async {
-    await _ordersState.createOrder(
+    final orderId = await _ordersState.createOrder(
       items: items,
       description: description,
       total: total,
       account: account,
     );
 
-    context.go('/${widget.placeId}/menu/pay');
+    context.go('/${widget.placeId}/order/$orderId/pay', extra: {
+      'items': items,
+      'amount': total,
+      'description': description,
+    });
   }
 
   @override

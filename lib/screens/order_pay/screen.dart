@@ -19,13 +19,13 @@ import 'package:pay_pos/screens/order_pay/qrcode.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 
 class OrderPayScreen extends StatefulWidget {
-  final bool isMenu;
+  final List<Map<String, dynamic>> items;
   final double amount;
   final String description;
 
   const OrderPayScreen({
     super.key,
-    required this.isMenu,
+    required this.items,
     required this.amount,
     required this.description,
   });
@@ -142,7 +142,7 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     QRCodeContent(
-                      isMenu: widget.isMenu,
+                      items: widget.items,
                       amount: widget.amount,
                       description: widget.description,
                       checkout: checkout,

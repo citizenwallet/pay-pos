@@ -86,7 +86,7 @@ class OrdersState with ChangeNotifier {
     }
   }
 
-  Future<void> createOrder({
+  Future<int?> createOrder({
     required List<Map<String, dynamic>> items,
     required String description,
     required double total,
@@ -102,11 +102,18 @@ class OrdersState with ChangeNotifier {
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
+      final pk = await _preferencesService.getPvtKey();
+      if (pk == null || pk.isEmpty) {
+        throw Exception("Private key is null or empty");
+      }
+      final address = EthPrivateKey.fromHex(pk).address;
+
       final response = await ordersService.createOrder(
         items: items,
         description: description,
         total: total,
         account: account,
+        posId: address.hexEip55,
         headers: headers,
       );
 
@@ -114,10 +121,16 @@ class OrdersState with ChangeNotifier {
       loading = false;
 
       safeNotifyListeners();
-    } catch (e) {
+
+      return orderId;
+    } catch (e, s) {
+      print(e);
+      print(s);
       loading = false;
       error = true;
       safeNotifyListeners();
+
+      return null;
     }
   }
 

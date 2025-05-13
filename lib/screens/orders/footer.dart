@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 
 class Footer extends StatefulWidget {
   final String placeId;
-  final Function(double, String?) onSend;
+  final Function(double, String?, String) onSend;
   final FocusNode amountFocusNode;
   final FocusNode messageFocusNode;
   final Place? place;
@@ -118,7 +118,7 @@ class _FooterState extends State<Footer> {
               ),
             ),
           if (widget.display == Display.amountAndMenu) SizedBox(height: 10),
-          if (displayAmount)
+          if (displayAmount && widget.place != null)
             TransactionInputRow(
               showAmountField: _showAmountField,
               amountController: _amountController,
@@ -129,6 +129,7 @@ class _FooterState extends State<Footer> {
               onSend: () => widget.onSend(
                 double.parse(_amountController.text),
                 _messageController.text,
+                widget.place!.account,
               ),
               // loading: paying,
               // disabled: disabled,
