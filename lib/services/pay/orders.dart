@@ -59,7 +59,7 @@ class OrdersService {
     }
 
     try {
-      String url = '/places/$placeId/createOrder';
+      String url = '/places/$placeId/orders';
 
       final body = {
         'placeId': int.parse(placeId),
@@ -105,7 +105,7 @@ class OrdersService {
     required Map<String, String> headers,
   }) async {
     try {
-      String url = '/places/$placeId/deleteOrder?orderId=$orderId';
+      String url = '/places/$placeId/orders?orderId=$orderId';
 
       final response = await apiService.delete(
         url: url,
