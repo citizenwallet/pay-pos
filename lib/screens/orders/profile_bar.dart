@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pay_pos/models/place.dart';
 import 'package:pay_pos/state/wallet.dart';
+import 'package:pay_pos/state/pin.dart';
 import 'package:provider/provider.dart';
+import 'package:pay_pos/widgets/pin_entry_dialog.dart';
 
 //models
 import 'package:pay_pos/models/user.dart';
@@ -84,7 +87,7 @@ class _ProfileBarState extends State<ProfileBar> {
               )
             ],
           ),
-          RightChevron(),
+          SettingsIcon(placeId: place.id.toString()),
         ],
       ),
     );
@@ -134,17 +137,43 @@ class Balance extends StatelessWidget {
   }
 }
 
-class RightChevron extends StatelessWidget {
-  const RightChevron({super.key});
+class SettingsIcon extends StatelessWidget {
+  final String placeId;
+
+  const SettingsIcon({
+    super.key,
+    required this.placeId,
+  });
+
+  Future<void> _handleSettingsTap(BuildContext context) async {
+    final pinState = context.read<PinState>();
+    final hasPin = await pinState.hasPin();
+
+    if (!context.mounted) return;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => PinEntryDialog(
+        isCreating: !hasPin,
+        onSuccess: () {
+          // Navigate to settings after pin is verified/created
+          context.push('/$placeId/settings');
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
 
-    return Icon(
-      CupertinoIcons.chevron_right,
-      color: theme.primaryColor,
-      size: 16,
+    return GestureDetector(
+      onTap: () => _handleSettingsTap(context),
+      child: Icon(
+        CupertinoIcons.settings,
+        color: theme.primaryColor,
+        size: 22,
+      ),
     );
   }
 }

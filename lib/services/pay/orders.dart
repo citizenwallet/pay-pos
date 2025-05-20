@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pay_pos/models/order.dart';
@@ -72,8 +70,6 @@ class OrdersService {
         'posId': posId,
         'type': "pos",
       };
-
-      print('body, $body');
 
       final response = await apiService.post(
         url: url,

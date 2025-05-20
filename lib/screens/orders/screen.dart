@@ -83,7 +83,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _onPayPressed(
       String description, double total, String account) async {
-    print('pay pressed, $description, $total, $account');
     final orderId = await _ordersState.createOrder(
       items: [],
       description: description,
@@ -92,11 +91,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
 
     if (orderId == null) {
-      print('order creation failed');
       return;
     }
-
-    print('order created');
 
     if (!mounted) return;
 
@@ -190,125 +186,3 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 }
-
-// class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
-//   final Place user;
-
-//   ProfileBarDelegate({required this.user});
-
-//   @override
-//   Widget build(
-//       BuildContext context, double shrinkOffset, bool overlapsContent) {
-//     return ProfileBar(
-//       place: user,
-//     );
-//   }
-
-//   @override
-//   double get maxExtent => 95.0; // Maximum height of header
-
-//   @override
-//   double get minExtent => 95.0; // Minimum height of header
-
-//   @override
-//   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-//       true;
-// }
-
-// Future<void> showPinEntryDialog(
-//   BuildContext context,
-//   String placeId,
-//   double height,
-// ) async {
-//   List<TextEditingController> controllers =
-//       List.generate(4, (index) => TextEditingController());
-//   List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
-
-//   await showCupertinoDialog(
-//     context: context,
-//     barrierDismissible: true,
-//     builder: (context) {
-//       return CupertinoAlertDialog(
-//         title: Text("Enter PIN"),
-//         content: Column(
-//           children: [
-//             SizedBox(height: height),
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: List.generate(4, (index) {
-//                 return Container(
-//                   width: 40,
-//                   margin: EdgeInsets.symmetric(horizontal: 5),
-//                   child: CupertinoTextField(
-//                     controller: controllers[index],
-//                     focusNode: focusNodes[index],
-//                     keyboardType: TextInputType.number,
-//                     textAlign: TextAlign.center,
-//                     maxLength: 1,
-//                     decoration: BoxDecoration(
-//                       border: Border.all(
-//                         color: CupertinoColors.systemGrey,
-//                       ),
-//                       borderRadius: BorderRadius.circular(6),
-//                     ),
-//                     onChanged: (value) {
-//                       if (value.isNotEmpty && index < 3) {
-//                         focusNodes[index + 1].requestFocus();
-//                       }
-//                     },
-//                   ),
-//                 );
-//               }),
-//             ),
-//           ],
-//         ),
-//         actions: [
-//           CupertinoDialogAction(
-//             onPressed: () async {
-//               String enteredPin =
-//                   controllers.map((controller) => controller.text).join();
-//               if (enteredPin.length == 4) {
-//                 bool verify = await LocalStorageService().verifyPin(enteredPin);
-
-//                 if (verify) {
-//                   Navigator.pop(context);
-
-//                   context.go('/$placeId/settings');
-//                 } else {
-//                   showCupertinoDialog(
-//                     context: context,
-//                     builder: (context) => CupertinoAlertDialog(
-//                       title: Text("Invalid PIN"),
-//                       content: Text("Enter a valid 4-digit PIN"),
-//                       actions: [
-//                         CupertinoDialogAction(
-//                           child: Text("OK"),
-//                           onPressed: () => Navigator.pop(context),
-//                         ),
-//                       ],
-//                     ),
-//                   );
-//                 }
-//               } else {
-//                 showCupertinoDialog(
-//                   context: context,
-//                   builder: (context) => CupertinoAlertDialog(
-//                     title: Text("Invalid PIN"),
-//                     content: Text("Enter a valid 4-digit PIN"),
-//                     actions: [
-//                       CupertinoDialogAction(
-//                         child: Text("OK"),
-//                         onPressed: () => Navigator.pop(context),
-//                       ),
-//                     ],
-//                   ),
-//                 );
-//               }
-//             },
-//             child: Text("Confirm"),
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }

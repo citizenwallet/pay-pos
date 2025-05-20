@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/theme/colors.dart';
+import 'package:toastification/toastification.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
@@ -44,7 +46,22 @@ class _FooterState extends State<Footer> {
       ),
       child: WideButton(
         onPressed: () => {
-          widget.onSend(),
+          if (disabled) {
+            toastification.showCustom(
+              context: context,
+              autoCloseDuration: const Duration(seconds: 2),
+              alignment: Alignment.bottomCenter,
+              builder: (context, toast) => Toast(
+                icon: const Icon(
+                  CupertinoIcons.exclamationmark_circle_fill,
+                  color: errorColor,
+                ),
+                title: const Text('Please select items first'),
+              ),
+            ),
+          } else {
+            widget.onSend(),
+          }
         },
         color: disabled
             ? surfaceDarkColor.withValues(alpha: 0.8)

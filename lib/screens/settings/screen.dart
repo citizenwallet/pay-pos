@@ -5,24 +5,18 @@ import 'dart:async';
 
 //models
 import 'package:pay_pos/screens/settings/settings_profile_bar.dart';
-import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/state/orders.dart';
-
-//state
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/pos.dart';
+import 'package:pay_pos/state/terminal.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/widgets/settings_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 import 'package:provider/provider.dart';
-import 'package:web3dart/credentials.dart';
 
 class SettingsScreen extends StatefulWidget {
-  // final String posId;
-
   const SettingsScreen({
     super.key,
-    // required this.posId,
   });
 
   @override
@@ -36,8 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late PlaceOrderState _placeOrderState;
   late OrdersState _ordersState;
   late POSState _posState;
-  final preferencesService = PreferencesService();
-  // late NotificationsLogic _notificationsLogic;
+  late TerminalState _terminalState;
 
   @override
   void initState() {
@@ -47,20 +40,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _ordersState = context.read<OrdersState>();
     _ordersState.isPollingEnabled = false;
     _posState = context.read<POSState>();
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _placeOrderState = context.read<PlaceOrderState>();
-    //   _ordersState = context.read<OrdersState>();
-    //   _ordersState.isPollingEnabled = false;
-    //   _posState = context.read<POSState>();
-    //   // _notificationsLogic = NotificationsLogic(context);
-    //   // onLoad();
-    // });
+    _terminalState = TerminalState(_posState);
   }
-
-  // Future<void> onLoad() async {
-  //   await _placeOrderState.fetchPlaceandMenu();
-  // }
 
   void goBack(String placeId) {
     context.go('/$placeId');
@@ -75,28 +56,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _onDeactivatePressed() async {
-    final pk = await preferencesService.getPvtKey();
-    if (pk != null) {
-      final posId = EthPrivateKey.fromHex(pk).address.hexEip55;
-
-      await _posState.updatePOS(posId: posId);
+    final success = await _terminalState.deactivateTerminal();
+    if (success && mounted) {
+      context.go('/');
     }
-
-    await preferencesService.clearPosId();
-    await preferencesService.clearPin();
-    await preferencesService.clearPvtKey();
-
-    context.go('/');
-  }
-
-  void sendMessage(double amount, String? message) {
-    // final account = _placeOrderState.place?.profile.account;
-
-    // _onPayPressed(message!, amount, account!);
-  }
-
-  void handleTogglePushNotifications(bool enabled) {
-    // _notificationsLogic.togglePushNotifications();
   }
 
   @override
@@ -106,137 +69,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final place = context.select((PlaceOrderState state) => state.place);
 
-    // final push = context.select((NotificationsState state) => state.push);
-
     if (place == null) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemBackground,
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
-          child: Column(
-            children: [
-              SettingsProfileBar(
-                userProfile: place.place,
-                height: screenHeight * 0.25,
-                onTapLeading: () => goBack(place.place.id.toString()),
-              ),
-              SizedBox(height: screenHeight * 0.05),
-              // Container(
-              //   color: CupertinoColors.systemGrey,
-              //   height: screenHeight * 0.45,
-              // ),
-              SettingsRow(
-                label: "Languages",
-                icon: 'assets/icons/language-svgrepo-com.svg',
-                iconColor: CupertinoColors.systemGrey,
-                onTap: () {},
-                // => {handleLanguage(selectedLanguage)},
-                // trailing: Row(
-                //   children: [
-                //     Text(
-                //       languageOptions[selectedLanguage].name,
-                //       style: TextStyle(
-                //         color: Theme.of(context)
-                //             .colors
-                //             .subtleSolidEmphasis
-                //             .resolveFrom(context),
-                //       ),
-                //     ),
-                //     const SizedBox(
-                //       width: 10,
-                //     )
-                //   ],
-                // ),
-              ),
-              SettingsRow(
-                label: "Theme",
-                icon: 'assets/icons/',
-                iconColor: CupertinoColors.systemGrey,
-                onTap: () {},
-                // => {handleLanguage(selectedLanguage)},
-                // trailing: Row(
-                //   children: [
-                //     Text(
-                //       languageOptions[selectedLanguage].name,
-                //       style: TextStyle(
-                //         color: Theme.of(context)
-                //             .colors
-                //             .subtleSolidEmphasis
-                //             .resolveFrom(context),
-                //       ),
-                //     ),
-                //     const SizedBox(
-                //       width: 10,
-                //     )
-                //   ],
-                // ),
-              ),
-              SizedBox(height: screenHeight * 0.05),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.02,
-                ),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: Color(0xFFD9D9D9),
-                      width: 1,
-                    ),
+    return ListenableBuilder(
+      listenable: _terminalState,
+      builder: (context, _) {
+        return CupertinoPageScaffold(
+          backgroundColor: CupertinoColors.systemBackground,
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
+              child: Column(
+                children: [
+                  SettingsProfileBar(
+                    userProfile: place.place,
+                    height: screenHeight * 0.25,
+                    onTapLeading: () => goBack(place.place.id.toString()),
                   ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    WideButton(
-                      onPressed: _onDeactivatePressed,
-                      color: surfaceDarkColor.withValues(alpha: 1),
-                      child: Text(
-                        'Deactivate Terminal',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.045,
-                          fontWeight: FontWeight.w700,
-                          color: CupertinoColors.white,
+                  SizedBox(height: screenHeight * 0.05),
+                  SettingsRow(
+                    label: "Languages",
+                    icon: 'assets/icons/language-svgrepo-com.svg',
+                    iconColor: CupertinoColors.systemGrey,
+                    onTap: () {},
+                  ),
+                  SettingsRow(
+                    label: "Theme",
+                    icon: 'assets/icons/',
+                    iconColor: CupertinoColors.systemGrey,
+                    onTap: () {},
+                  ),
+                  SizedBox(height: screenHeight * 0.05),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: screenHeight * 0.02,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Color(0xFFD9D9D9),
+                          width: 1,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        WideButton(
+                          onPressed: _terminalState.isLoading
+                              ? null
+                              : _onDeactivatePressed,
+                          color: surfaceDarkColor.withValues(alpha: 1),
+                          child: _terminalState.isLoading
+                              ? const CupertinoActivityIndicator()
+                              : Text(
+                                  'Deactivate Terminal',
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.045,
+                                    fontWeight: FontWeight.w700,
+                                    color: CupertinoColors.white,
+                                  ),
+                                ),
+                        ),
+                        if (_terminalState.errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            _terminalState.errorMessage!,
+                            style: const TextStyle(
+                                color: CupertinoColors.systemRed),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
-
-// class ProfileBarDelegate extends SliverPersistentHeaderDelegate {
-//   final User user;
-
-//   ProfileBarDelegate({required this.user});
-
-//   @override
-//   Widget build(
-//       BuildContext context, double shrinkOffset, bool overlapsContent) {
-//     return SettingsProfileBar(
-//       userProfile: user,
-//       height: screenHeight * 0.3,
-//     );
-//   }
-
-//   @override
-//   double get maxExtent => 95.0; // Maximum height of header
-
-//   @override
-//   double get minExtent => 95.0; // Minimum height of header
-
-//   @override
-//   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-//       true;
-// }

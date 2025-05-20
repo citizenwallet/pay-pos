@@ -11,10 +11,6 @@ class PreferencesService {
     _preferences = pref;
   }
 
-  Future clear() async {
-    await _preferences.clear();
-  }
-
   // saved balance
   Future setBalance(String value) async {
     await _preferences.setString('balance', value);
@@ -23,7 +19,6 @@ class PreferencesService {
   String? get balance => _preferences.getString('balance');
 
   static const String posIdKey = "posId";
-  static const String privateKey = "privateKey";
   static const String pinCode = "pinCode";
   static const String placeIdKey = "placeId";
 
@@ -37,6 +32,11 @@ class PreferencesService {
     final placeId = prefs.getString(placeIdKey);
 
     return placeId;
+  }
+
+  Future<void> clearPlaceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(placeIdKey);
   }
 
   Future<void> clearPosId() async {
@@ -64,22 +64,5 @@ class PreferencesService {
   Future<void> clearPin() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(pinCode);
-  }
-
-  Future<String?> getPvtKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    final pvtkey = prefs.getString(privateKey);
-
-    return pvtkey;
-  }
-
-  Future<void> setPvtKey(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(privateKey, key);
-  }
-
-  Future<void> clearPvtKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(privateKey);
   }
 }
