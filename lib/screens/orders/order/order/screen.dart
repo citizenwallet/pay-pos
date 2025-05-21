@@ -6,6 +6,7 @@ import 'package:pay_pos/models/order.dart';
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
+import 'package:pay_pos/widgets/refund_confirmation_dialog.dart';
 
 class OrderScreen extends StatefulWidget {
   final Order order;
@@ -17,6 +18,19 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  void _handleRefund() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => RefundConfirmationDialog(
+        onConfirm: _confirmRefund,
+      ),
+    );
+  }
+
+  void _confirmRefund() {
+    print('Refund confirmed');
+  }
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -112,40 +126,8 @@ class _OrderScreenState extends State<OrderScreen> {
                           ],
                         ),
                       ),
-                    // Order items
-                    // if (order.items.isNotEmpty) ...[
-                    //   const SizedBox(height: 24),
-                    //   const Text(
-                    //     'Items',
-                    //     style: TextStyle(
-                    //       fontSize: 20,
-                    //       fontWeight: FontWeight.bold,
-                    //     ),
-                    //   ),
-                    //   const SizedBox(height: 8),
-                    //   ListView.builder(
-                    //     shrinkWrap: true,
-                    //     physics: const NeverScrollableScrollPhysics(),
-                    //     itemCount: order.items.length,
-                    //     itemBuilder: (context, index) {
-                    //       final item = order.items[index];
-                    //       return Padding(
-                    //         padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    //         child: Row(
-                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //           children: [
-                    //             Text('Item #${item.id}'),
-                    //             Text('Quantity: ${item.quantity}'),
-                    //           ],
-                    //         ),
-                    //       );
-                    //     },
-                    //   ),
-                    // ],
 
-                    // Additional order details
                     const SizedBox(height: 24),
-
                     const Text(
                       'Order Details',
                       style: TextStyle(
@@ -163,7 +145,7 @@ class _OrderScreenState extends State<OrderScreen> {
               padding: const EdgeInsets.all(20.0),
               child: WideButton(
                 color: CupertinoColors.systemRed,
-                onPressed: () {},
+                onPressed: () => _handleRefund(),
                 child: const Text(
                   'Refund',
                   style: TextStyle(
