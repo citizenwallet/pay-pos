@@ -45,10 +45,6 @@
 		</array>
 		<key>NSContactsUsageDescription</key>
 		<string>We need access to your contacts in order for you to find people to send payments to. This information is kept private and never shared with anyone.</string>
-		<key>keychain-access-groups</key>
-		<array>
-			<string>$(AppIdentifierPrefix)com.brussels.paypos</string>
-			<string>TEAM_ID.com.brussels.paypos</string>
 		</array>
 		<key>NSFaceIDUsageDescription</key>
 		<string>We use Face ID to securely access your private key and protect your wallet.</string>

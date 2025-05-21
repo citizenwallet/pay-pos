@@ -29,7 +29,7 @@ class POSService {
       String url = '/pos/updateStatus?posId=$id';
 
       final response = await apiService.put(url: url, body: {
-        'isActive': false,
+        'is_active': false,
       });
     } catch (e, s) {
       debugPrint('Failed to update pos: $e');
