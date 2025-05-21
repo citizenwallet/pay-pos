@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pay_pos/models/menu_item.dart';
-
-import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/utils/date.dart';
+
+//models
+import 'package:pay_pos/models/menu_item.dart';
+import 'package:pay_pos/models/order.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 class OrderListItem extends StatelessWidget {

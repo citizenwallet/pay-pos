@@ -1,22 +1,19 @@
-// beforePayment.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
-import 'package:pay_pos/widgets/qr/qr.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 //models
 import 'package:pay_pos/models/checkout.dart';
 
+//screens
+import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
+
 //widgets
+import 'package:pay_pos/widgets/qr/qr.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 //state
 import 'package:pay_pos/state/checkout.dart';
-
-//screens
-import 'package:pay_pos/screens/interactions/menu/selected_items.dart';
 
 class QRCodeContent extends StatelessWidget {
   final List<Map<String, dynamic>> items;

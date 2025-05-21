@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
+
+//models
 import 'package:pay_pos/models/order.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
+import 'package:pay_pos/widgets/wide_button.dart';
 
 class OrderScreen extends StatefulWidget {
   final Order order;
@@ -21,133 +26,155 @@ class _OrderScreenState extends State<OrderScreen> {
         middle: Text('Order #${order.id}'),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Order ID in big font
-              Center(
-                child: Text(
-                  '#${order.id}',
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Order amount using the Amount widget from order_list_item.dart
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Total Amount:',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                    // Order ID in big font
+                    Center(
+                      child: Text(
+                        '#${order.id}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    Amount(amount: order.total),
+
+                    const SizedBox(height: 24),
+
+                    // Order amount using the Amount widget from order_list_item.dart
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total Amount:',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Amount(amount: order.total),
+                        ],
+                      ),
+                    ),
+
+                    if (order.fees > 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Fees:',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Amount(amount: order.fees),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    // Order status
+                    _buildInfoRow(
+                      'Status:',
+                      order.status.name.toUpperCase(),
+                      valueColor: _getStatusColor(order.status),
+                    ),
+
+                    // Order description
+                    if (order.description != null &&
+                        order.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Description:',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(order.description ?? ''),
+                          ],
+                        ),
+                      ),
+                    // Order items
+                    // if (order.items.isNotEmpty) ...[
+                    //   const SizedBox(height: 24),
+                    //   const Text(
+                    //     'Items',
+                    //     style: TextStyle(
+                    //       fontSize: 20,
+                    //       fontWeight: FontWeight.bold,
+                    //     ),
+                    //   ),
+                    //   const SizedBox(height: 8),
+                    //   ListView.builder(
+                    //     shrinkWrap: true,
+                    //     physics: const NeverScrollableScrollPhysics(),
+                    //     itemCount: order.items.length,
+                    //     itemBuilder: (context, index) {
+                    //       final item = order.items[index];
+                    //       return Padding(
+                    //         padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    //         child: Row(
+                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //           children: [
+                    //             Text('Item #${item.id}'),
+                    //             Text('Quantity: ${item.quantity}'),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     },
+                    //   ),
+                    // ],
+
+                    // Additional order details
+                    const SizedBox(height: 24),
+
+                    const Text(
+                      'Order Details',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow('Created:', _formatDate(order.createdAt)),
                   ],
                 ),
               ),
-
-              if (order.fees > 0)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Fees:',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Amount(amount: order.fees),
-                    ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: WideButton(
+                color: CupertinoColors.systemRed,
+                onPressed: () {},
+                child: const Text(
+                  'Refund',
+                  style: TextStyle(
+                    color: CupertinoColors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-
-              const SizedBox(height: 16),
-
-              // Order status
-              _buildInfoRow(
-                'Status:',
-                order.status.name.toUpperCase(),
-                valueColor: _getStatusColor(order.status),
               ),
-
-              // Order description
-              if (order.description != null && order.description!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Description:',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(order.description ?? ''),
-                    ],
-                  ),
-                ),
-
-              // Order items
-              // if (order.items.isNotEmpty) ...[
-              //   const SizedBox(height: 24),
-              //   const Text(
-              //     'Items',
-              //     style: TextStyle(
-              //       fontSize: 20,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              //   const SizedBox(height: 8),
-              //   ListView.builder(
-              //     shrinkWrap: true,
-              //     physics: const NeverScrollableScrollPhysics(),
-              //     itemCount: order.items.length,
-              //     itemBuilder: (context, index) {
-              //       final item = order.items[index];
-              //       return Padding(
-              //         padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //         child: Row(
-              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //           children: [
-              //             Text('Item #${item.id}'),
-              //             Text('Quantity: ${item.quantity}'),
-              //           ],
-              //         ),
-              //       );
-              //     },
-              //   ),
-              // ],
-
-              // Additional order details
-              const SizedBox(height: 24),
-              const Text(
-                'Order Details',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildInfoRow('Created:', _formatDate(order.createdAt)),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

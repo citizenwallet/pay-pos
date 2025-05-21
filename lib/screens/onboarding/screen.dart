@@ -3,8 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pay_pos/theme/colors.dart';
-import 'package:pay_pos/widgets/qr/qr.dart';
-import 'package:pay_pos/widgets/toast/toast.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
@@ -13,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 //widgets
 import 'package:pay_pos/widgets/short_button.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
+import 'package:pay_pos/widgets/qr/qr.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 
 //states
 import 'package:pay_pos/state/onboarding.dart';
@@ -152,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     final posId =
         context.select<OnboardingState, String?>((state) => state.posId);
-   
+
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       child: SafeArea(

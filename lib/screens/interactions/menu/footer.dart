@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:toastification/toastification.dart';
-import 'package:pay_pos/widgets/toast/toast.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 
 class Footer extends StatefulWidget {
   final double checkoutTotal;

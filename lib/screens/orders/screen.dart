@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/models/order.dart';
 import 'dart:async';
 
 //models
 import 'package:pay_pos/models/place.dart';
+import 'package:pay_pos/models/order.dart';
 
 //screens
 import 'package:pay_pos/screens/orders/footer.dart';
@@ -122,9 +122,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.width;
-
     final place = context.select((PlaceOrderState state) => state.place);
 
     final orders = context.select((OrdersState state) => state.orders);
@@ -142,17 +139,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              GestureDetector(
-                onTap: () {
-                  // showPinEntryDialog(
-                  //   context,
-                  //   widget.placeId,
-                  //   screenHeight * 0.02,
-                  // );
-                },
-                child: ProfileBar(
-                  place: place.place,
-                ),
+              ProfileBar(
+                place: place.place,
               ),
               Expanded(
                 child: ListView.builder(

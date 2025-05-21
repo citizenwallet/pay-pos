@@ -1,14 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/state/place_order.dart';
+import 'package:provider/provider.dart';
 
 //models
 import 'package:pay_pos/models/place.dart';
 
+//state
+import 'package:pay_pos/state/place_order.dart';
+
 //widgets
 import 'package:pay_pos/widgets/transaction_input_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
-import 'package:provider/provider.dart';
 
 class Footer extends StatefulWidget {
   final String placeId;

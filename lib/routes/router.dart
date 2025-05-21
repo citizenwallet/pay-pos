@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+//models
 import 'package:pay_pos/models/order.dart';
+
+//screens
 import 'package:pay_pos/screens/order_pay/screen.dart';
 import 'package:pay_pos/screens/orders/order/order/screen.dart';
 import 'package:pay_pos/screens/settings/screen.dart';
-import 'package:provider/provider.dart';
-
-// screens
 import 'package:pay_pos/screens/onboarding/screen.dart';
 import 'package:pay_pos/screens/interactions/menu/screen.dart';
 import 'package:pay_pos/screens/orders/screen.dart';
