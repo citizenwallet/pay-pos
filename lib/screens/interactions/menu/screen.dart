@@ -73,8 +73,8 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _currentVisibleCategory = placeMenu.categories[0];
   }
 
-  Future<void> _onPayPressed(List<Map<String, dynamic>> items,
-      String description, double total, String account) async {
+  Future<void> _handlePay(List<Map<String, dynamic>> items, String description,
+      double total, String account) async {
     final orderId = await _ordersState.createOrder(
       items: items,
       description: description,
@@ -101,7 +101,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   }
 
   void goBack() {
-    Navigator.pop(context);
+    context.go('/${widget.placeId}');
   }
 
   void _onScroll() {
@@ -284,8 +284,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
                           'quantity': item.quantity,
                         })
                     .toList();
-                _onPayPressed(
-                    items, "", checkout.total, place!.profile.account);
+                _handlePay(items, "", checkout.total, place!.place.account);
               },
             ),
           ],

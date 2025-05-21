@@ -2,6 +2,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
+import 'package:pay_pos/widgets/qr/qr.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 //models
@@ -120,7 +122,9 @@ class QRCodeContent extends StatelessWidget {
                       height: (width * 0.75) * 0.06,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -129,13 +133,12 @@ class QRCodeContent extends StatelessWidget {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  QrImageView(
+                  QR(
                     data:
                         "${dotenv.env['CHECKOUT_BASE_URL']}/$slug?orderId=$orderId",
-                    version: QrVersions.auto,
+                    logo: 'assets/logo.png',
                     size: (width * 0.75),
-                    gapless: false,
-                    errorCorrectionLevel: QrErrorCorrectLevel.H,
+                    padding: const EdgeInsets.all(14),
                   ),
                   Positioned(
                     child: Container(
@@ -154,7 +157,7 @@ class QRCodeContent extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
+              )
             ],
           ),
         SizedBox(height: height * 0.03),
@@ -192,7 +195,7 @@ class QRCodeContent extends StatelessWidget {
                           minHeight: constraints.maxHeight,
                         ),
                         child: IntrinsicHeight(
-                          child: SelectedItems(
+                          child: SelectedItemsList(
                             checkoutState: checkoutState,
                           ),
                         ),

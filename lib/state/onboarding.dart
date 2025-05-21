@@ -6,6 +6,7 @@ import 'package:pay_pos/utils/delay.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:pay_pos/services/pay/pos.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
+import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:web3dart/crypto.dart';
 
 class OnboardingState with ChangeNotifier {
@@ -13,6 +14,7 @@ class OnboardingState with ChangeNotifier {
   bool loading = false;
 
   final PreferencesService _preferencesService = PreferencesService();
+  final SecureStorageService _secureStorageService = SecureStorageService();
   final POSService _posService = POSService();
   EthPrivateKey? _privateKey;
 
@@ -25,12 +27,11 @@ class OnboardingState with ChangeNotifier {
   }
 
   Future<String?> getPosId() async {
-    // TODO: move to secure storage
-    final storedPvtKey = await _preferencesService.getPvtKey();
+    final storedPvtKey = await _secureStorageService.getPrivateKey();
+    
     if (storedPvtKey == null) return null;
 
     _privateKey = EthPrivateKey.fromHex(storedPvtKey);
-
     return _privateKey?.address.hexEip55;
   }
 
@@ -91,9 +92,9 @@ class OnboardingState with ChangeNotifier {
           await _posService.checkIdActivation(unactivatedPosId);
 
       await _preferencesService.setPlaceId(activatedPlaceId);
-      // TODO: move to secure storage
-      await _preferencesService
-          .setPvtKey(bytesToHex(_privateKey!.privateKey, include0x: false));
+      await _secureStorageService.setPrivateKey(
+        bytesToHex(_privateKey!.privateKey, include0x: false)
+      );
 
       return activatedPlaceId;
     } catch (e) {

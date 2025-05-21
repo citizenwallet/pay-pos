@@ -4,11 +4,13 @@ import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/orders.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
+import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:pay_pos/services/sigauth.dart';
 import 'package:web3dart/web3dart.dart';
 
 class OrdersState with ChangeNotifier {
   final PreferencesService _preferencesService = PreferencesService();
+  final SecureStorageService _secureStorageService = SecureStorageService();
   final OrdersService ordersService;
   late final SignatureAuthService signatureAuthService;
 
@@ -25,8 +27,7 @@ class OrdersState with ChangeNotifier {
       }
     } catch (e) {}
 
-    // TODO: move to secure storage
-    final privateKey = await _preferencesService.getPvtKey();
+    final privateKey = await _secureStorageService.getPrivateKey();
     if (privateKey == null || privateKey.isEmpty) {
       throw Exception("Private key is null or empty");
     }
@@ -98,13 +99,15 @@ class OrdersState with ChangeNotifier {
     safeNotifyListeners();
 
     try {
+      if (account.isEmpty) {
+        throw Exception("Account cannot be empty");
+      }
       await _signatureAuth(account);
 
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
-      // TODO: move to secure storage
-      final pk = await _preferencesService.getPvtKey();
+      final pk = await _secureStorageService.getPrivateKey();
       if (pk == null || pk.isEmpty) {
         throw Exception("Private key is null or empty");
       }
@@ -126,8 +129,6 @@ class OrdersState with ChangeNotifier {
 
       return orderId;
     } catch (e, s) {
-      print(e);
-      print(s);
       loading = false;
       error = true;
       safeNotifyListeners();
@@ -144,6 +145,9 @@ class OrdersState with ChangeNotifier {
     error = false;
     safeNotifyListeners();
     try {
+      if (account.isEmpty) {
+        throw Exception("Account cannot be empty");
+      }
       await _signatureAuth(account);
 
       final connection = signatureAuthService.connect();

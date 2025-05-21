@@ -10,8 +10,6 @@ import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-//services
-
 //widgets
 import 'package:pay_pos/widgets/short_button.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
@@ -30,7 +28,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     with WidgetsBindingObserver {
   late OnboardingState _onboardingState;
   Timer? _activationCheckTimer;
-  bool _isDialogShown = false;
 
   final String _activationBaseUrl = dotenv.env['ACTIVATION_BASE_URL'] ?? '';
 
@@ -153,28 +150,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     final size = screenWidth > screenHeight ? screenHeight : screenWidth;
 
-    // final isActivated =
-    //     context.select<OnboardingState, bool>((state) => state.isActivated);
     final posId =
         context.select<OnboardingState, String?>((state) => state.posId);
-    // final placeId =
-    //     context.select<OnboardingState, String?>((state) => state.placeId);
-
-    // if (isActivated && posId != null && !_isDialogShown) {
-    //   _isDialogShown = true;
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (placeId != null && placeId.isNotEmpty) {
-    //       showPinEntryDialog(
-    //         context,
-    //         placeId,
-    //         screenHeight * 0.02,
-    //       ).then((_) {
-    //         _isDialogShown = false;
-    //       });
-    //     }
-    //   });
-    // }
-
+   
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       child: SafeArea(

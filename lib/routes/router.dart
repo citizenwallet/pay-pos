@@ -68,7 +68,10 @@ GoRouter createRouter(
             name: 'Settings',
             path: '/:placeId/settings',
             builder: (context, state) {
-              return SettingsScreen();
+              return ChangeNotifierProvider(
+                create: (_) => OnboardingState(),
+                child: SettingsScreen(),
+              );
             },
           ),
           GoRoute(

@@ -24,6 +24,8 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
@@ -43,5 +45,12 @@
 		</array>
 		<key>NSContactsUsageDescription</key>
 		<string>We need access to your contacts in order for you to find people to send payments to. This information is kept private and never shared with anyone.</string>
+		</array>
+		<key>NSFaceIDUsageDescription</key>
+		<string>We use Face ID to securely access your private key and protect your wallet.</string>
+		<key>NSBiometricUsageDescription</key>
+		<string>We use biometric authentication to securely access your private key and protect your wallet.</string>
+		<key>NSKeychainUsageDescription</key>
+		<string>We use the keychain to securely store your private key and protect your wallet.</string>
 	</dict>
 </plist>

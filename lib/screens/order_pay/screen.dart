@@ -14,6 +14,7 @@ import 'package:pay_pos/state/checkout.dart';
 
 //screens
 import 'package:pay_pos/screens/order_pay/qrcode.dart';
+import 'package:pay_pos/screens/orders/footer.dart';
 
 //widgets
 import 'package:pay_pos/widgets/wide_button.dart';
@@ -61,7 +62,11 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
 
   void clearCheckout() {
     final checkoutState = context.read<CheckoutState>();
-    checkoutState.checkout = Checkout(items: []);
+    checkoutState.checkout = Checkout(
+      items: [],
+    );
+
+    Footer.clearControllers();
   }
 
   Future<void> checkOrderStatus() async {
@@ -87,16 +92,16 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                 _isLoading = false;
                 _showSuccess = true;
               });
+              clearCheckout();
             }
           });
         }
       }
-    } catch (e) {
-      debugPrint('Error checking order status: $e');
-    }
+    } catch (e) {}
   }
 
-  Future<void> goBack(String orderId, String account, String placeId) async {
+  Future<void> _handleCancel(
+      String orderId, String account, String placeId) async {
     _statusCheckTimer?.cancel();
     await _ordersState.deleteOrder(
       orderId: orderId,
@@ -167,7 +172,7 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
 
                         context.go('/${place.placeId}');
                       } else {
-                        goBack(
+                        _handleCancel(
                           order.orderId.toString(),
                           place.place!.place.account[0],
                           place.placeId,

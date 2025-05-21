@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pay_pos/state/app.dart';
 import 'package:pay_pos/state/checkout.dart';
 import 'package:pay_pos/state/orders.dart';
+import 'package:pay_pos/state/pin.dart';
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/pos.dart';
 import 'package:pay_pos/state/wallet.dart';
@@ -16,6 +17,9 @@ Widget provideAppState(
       providers: [
         ChangeNotifierProvider(
           create: (_) => AppState(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PinState(),
         ),
       ],
       builder: builder,

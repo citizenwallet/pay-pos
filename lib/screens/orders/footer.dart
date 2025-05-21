@@ -17,6 +17,10 @@ class Footer extends StatefulWidget {
   final FocusNode messageFocusNode;
   final Place? place;
   final Display? display;
+  final VoidCallback? onClear;
+
+  static final List<TextEditingController> _amountControllers = [];
+  static final List<TextEditingController> _messageControllers = [];
 
   const Footer({
     super.key,
@@ -26,7 +30,17 @@ class Footer extends StatefulWidget {
     required this.messageFocusNode,
     this.place,
     this.display,
+    this.onClear,
   });
+
+  static void clearControllers() {
+    for (var controller in _amountControllers) {
+      controller.clear();
+    }
+    for (var controller in _messageControllers) {
+      controller.clear();
+    }
+  }
 
   @override
   State<Footer> createState() => _FooterState();
@@ -41,16 +55,24 @@ class _FooterState extends State<Footer> {
   @override
   void initState() {
     super.initState();
+    Footer._amountControllers.add(_amountController);
+    Footer._messageControllers.add(_messageController);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // widget.amountFocusNode.requestFocus();
     });
   }
 
   @override
-  void dispose() {
-    _amountController.dispose();
-    _messageController.dispose();
-    super.dispose();
+  void didUpdateWidget(Footer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.onClear != oldWidget.onClear) {
+      widget.onClear?.call();
+    }
+  }
+
+  void clearControllers() {
+    _amountController.clear();
+    _messageController.clear();
   }
 
   void _toggleField() {
@@ -138,5 +160,14 @@ class _FooterState extends State<Footer> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    Footer._amountControllers.remove(_amountController);
+    Footer._messageControllers.remove(_messageController);
+    _amountController.dispose();
+    _messageController.dispose();
+    super.dispose();
   }
 }
