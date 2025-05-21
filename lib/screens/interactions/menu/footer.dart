@@ -22,6 +22,26 @@ class Footer extends StatefulWidget {
 }
 
 class _FooterState extends State<Footer> {
+  void handleCreateQRCode() {
+    final disabled = widget.checkoutTotal == 0;
+    if (disabled) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 2),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.exclamationmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('Please select items first'),
+        ),
+      );
+    } else {
+      widget.onSend();
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -45,24 +65,7 @@ class _FooterState extends State<Footer> {
         ),
       ),
       child: WideButton(
-        onPressed: () => {
-          if (disabled) {
-            toastification.showCustom(
-              context: context,
-              autoCloseDuration: const Duration(seconds: 2),
-              alignment: Alignment.bottomCenter,
-              builder: (context, toast) => Toast(
-                icon: const Icon(
-                  CupertinoIcons.exclamationmark_circle_fill,
-                  color: errorColor,
-                ),
-                title: const Text('Please select items first'),
-              ),
-            ),
-          } else {
-            widget.onSend(),
-          }
-        },
+        onPressed: handleCreateQRCode,
         color: disabled
             ? surfaceDarkColor.withValues(alpha: 0.8)
             : surfaceDarkColor,
