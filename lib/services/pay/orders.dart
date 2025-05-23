@@ -145,4 +145,23 @@ class OrdersService {
       throw Exception('Failed to fetch orders');
     }
   }
+
+  Future<void> refundOrder({
+    required String orderId,
+  }) async {
+    try {
+      String url = 'pos/$orderId/refund';
+
+      final response = await apiService.patch(
+        url: url,
+        body: {},
+      );
+
+      print(response);
+    } catch (e, s) {
+      debugPrint('Failed to refund order: $e');
+      debugPrint('Stack trace: $s');
+      throw Exception('Failed to refund order');
+    }
+  }
 }

@@ -143,18 +143,22 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: WideButton(
-                color: CupertinoColors.systemRed,
-                onPressed: () => _handleRefund(),
-                child: const Text(
-                  'Refund',
-                  style: TextStyle(
-                    color: CupertinoColors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              child: order.type != OrderType.app &&
+                      order.status == OrderStatus.paid &&
+                      order.txHash != null
+                  ? WideButton(
+                      color: CupertinoColors.systemRed,
+                      onPressed: () => _handleRefund(),
+                      child: const Text(
+                        'Refund',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),
