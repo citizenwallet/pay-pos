@@ -35,8 +35,12 @@ class PlacesService {
   //   }
   // }
 
-  Future<PlaceWithMenu> getPlaceandMenu(String placeId) async {
-    final response = await apiService.get(url: '/places/$placeId/menu');
+  Future<PlaceWithMenu> getPlaceandMenu(
+      String placeId, Map<String, String> headers) async {
+    final response = await apiService.get(
+      url: '/pos/places/$placeId/menu',
+      headers: headers,
+    );
 
     /*
     {

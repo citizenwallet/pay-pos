@@ -3,10 +3,15 @@ import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
 import 'package:pay_pos/services/pay/places.dart';
+import 'package:pay_pos/services/secure_storage/secure_storage.dart';
+import 'package:pay_pos/services/sigauth.dart';
+import 'package:pay_pos/utils/delay.dart';
 import 'package:web3dart/web3dart.dart';
 
 class PlaceOrderState with ChangeNotifier {
   final PlacesService placesService = PlacesService();
+  final SecureStorageService _secureStorageService = SecureStorageService();
+  late final SignatureAuthService signatureAuthService;
 
   bool _mounted = true;
   String? _account;
@@ -14,7 +19,23 @@ class PlaceOrderState with ChangeNotifier {
 
   PlaceOrderState({
     required this.placeId,
-  });
+  }) {
+    init();
+  }
+
+  void init() async {
+    final privateKey = await _secureStorageService.getPrivateKey();
+    if (privateKey == null || privateKey.isEmpty) {
+      throw Exception("Private key is null or empty");
+    }
+
+    final credentials = EthPrivateKey.fromHex(privateKey);
+
+    signatureAuthService = SignatureAuthService(
+      credentials: credentials,
+      address: credentials.address,
+    );
+  }
 
   String get account => _account ?? '';
   String get slug => _slug ?? '';
@@ -49,7 +70,11 @@ class PlaceOrderState with ChangeNotifier {
       error = false;
       safeNotifyListeners();
 
-      final placeWithMenu = await placesService.getPlaceandMenu(placeId);
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+
+      final placeWithMenu =
+          await placesService.getPlaceandMenu(placeId, headers);
       place = placeWithMenu;
       _account = placeWithMenu.place.account;
       _slug = placeWithMenu.place.slug;
@@ -67,8 +92,9 @@ class PlaceOrderState with ChangeNotifier {
       error = true;
       loading = false;
       safeNotifyListeners();
-    }
 
-    return null;
+      await delay(const Duration(seconds: 1));
+      return fetchPlaceandMenu();
+    }
   }
 }

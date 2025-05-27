@@ -79,7 +79,6 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
       items: items,
       description: description,
       total: total,
-      account: account,
     );
 
     context.go('/${widget.placeId}/order/$orderId/pay', extra: {

@@ -18,29 +18,22 @@ class OrdersState with ChangeNotifier {
   bool _isPollingEnabled = true;
 
   OrdersState({required this.placeId})
-      : ordersService = OrdersService(placeId: placeId);
+      : ordersService = OrdersService(placeId: placeId) {
+    init();
+  }
 
-  Future<void> _signatureAuth(String account) async {
-    try {
-      if (signatureAuthService != null) {
-        return;
-      }
-    } catch (e) {}
-
+  void init() async {
     final privateKey = await _secureStorageService.getPrivateKey();
     if (privateKey == null || privateKey.isEmpty) {
       throw Exception("Private key is null or empty");
     }
 
     final credentials = EthPrivateKey.fromHex(privateKey);
-    final address = EthereumAddress.fromHex(account);
 
     signatureAuthService = SignatureAuthService(
       credentials: credentials,
-      address: address,
+      address: credentials.address,
     );
-
-    safeNotifyListeners();
   }
 
   bool get isPollingEnabled => _isPollingEnabled;
@@ -77,7 +70,9 @@ class OrdersState with ChangeNotifier {
     if (!_isPollingEnabled) return;
 
     try {
-      final response = await ordersService.getOrders();
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+      final response = await ordersService.getOrders(headers: headers);
 
       orders = response.orders;
 
@@ -92,18 +87,12 @@ class OrdersState with ChangeNotifier {
     required List<Map<String, dynamic>> items,
     required String description,
     required double total,
-    required String account,
   }) async {
     loading = true;
     error = false;
     safeNotifyListeners();
 
     try {
-      if (account.isEmpty) {
-        throw Exception("Account cannot be empty");
-      }
-      await _signatureAuth(account);
-
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
@@ -117,7 +106,6 @@ class OrdersState with ChangeNotifier {
         items: items,
         description: description,
         total: total,
-        account: account,
         posId: address.hexEip55,
         headers: headers,
       );
@@ -139,17 +127,11 @@ class OrdersState with ChangeNotifier {
 
   Future<void> deleteOrder({
     required String orderId,
-    required String account,
   }) async {
     loading = true;
     error = false;
     safeNotifyListeners();
     try {
-      if (account.isEmpty) {
-        throw Exception("Account cannot be empty");
-      }
-      await _signatureAuth(account);
-
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
@@ -176,7 +158,13 @@ class OrdersState with ChangeNotifier {
     error = false;
     safeNotifyListeners();
     try {
-      final response = await ordersService.checkOrderStatus(orderId: orderId);
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+
+      final response = await ordersService.checkOrderStatus(
+        orderId: orderId,
+        headers: headers,
+      );
 
       orderStatus = response;
 
@@ -196,17 +184,11 @@ class OrdersState with ChangeNotifier {
     safeNotifyListeners();
 
     try {
-      if (account.isEmpty) {
-        throw Exception("Account cannot be empty");
-      }
-      await _signatureAuth(account);
-
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
       final response = await ordersService.refundOrder(
         orderId: orderId,
-        account: account,
         headers: headers,
       );
 

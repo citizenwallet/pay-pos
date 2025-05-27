@@ -16,6 +16,7 @@ class OrdersService {
   Future<({List<Order> orders})> getOrders({
     int? limit,
     int? offset,
+    required Map<String, String> headers,
   }) async {
     try {
       final queryParams = {
@@ -23,7 +24,7 @@ class OrdersService {
         if (offset != null) 'offset': offset.toString(),
       };
 
-      String url = '/places/$placeId/orders/recent';
+      String url = '/pos/orders/recent?placeId=$placeId';
 
       if (queryParams.isNotEmpty) {
         url += '?${Uri(queryParameters: queryParams).query}';
@@ -31,6 +32,7 @@ class OrdersService {
 
       final response = await apiService.get(
         url: url,
+        headers: headers,
       );
 
       final List<Order> orders = (response['orders'] as List)
@@ -49,7 +51,6 @@ class OrdersService {
     required List<Map<String, dynamic>> items,
     required String description,
     required double total,
-    required String account,
     required String posId,
     required Map<String, String> headers,
   }) async {
@@ -59,14 +60,13 @@ class OrdersService {
     }
 
     try {
-      String url = '/places/$placeId/orders';
+      String url = '/pos/orders';
 
       final body = {
         'placeId': int.parse(placeId),
         'items': items,
         'description': description.trim(),
         'total': totalInCents,
-        'account': account,
         'posId': posId,
         'type': "pos",
       };
@@ -105,7 +105,7 @@ class OrdersService {
     required Map<String, String> headers,
   }) async {
     try {
-      String url = '/places/$placeId/orders?orderId=$orderId';
+      String url = '/pos/orders/$orderId';
 
       final response = await apiService.delete(
         url: url,
@@ -127,12 +127,14 @@ class OrdersService {
 
   Future<String> checkOrderStatus({
     required String orderId,
+    required Map<String, String> headers,
   }) async {
     try {
-      String url = '/places/$placeId/orders/paidOrderById?orderId=$orderId';
+      String url = '/pos/orders/$orderId/status';
 
       final response = await apiService.get(
         url: url,
+        headers: headers,
       );
 
       final responseData = response['status'];
@@ -148,15 +150,12 @@ class OrdersService {
 
   Future<void> refundOrder({
     required String orderId,
-    required String account,
     required Map<String, String> headers,
   }) async {
     try {
-      String url = 'pos/$orderId/refund';
+      String url = 'pos/orders/$orderId/refund';
 
-      final body = {
-        'account': account,
-      };
+      final body = {};
 
       final response = await apiService.patch(
         url: url,

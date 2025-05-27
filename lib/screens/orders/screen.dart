@@ -87,7 +87,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
       items: [],
       description: description,
       total: total,
-      account: account,
     );
 
     if (orderId == null) {

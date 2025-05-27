@@ -100,12 +100,10 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
     } catch (e) {}
   }
 
-  Future<void> _handleCancel(
-      String orderId, String account, String placeId) async {
+  Future<void> _handleCancel(String orderId, String placeId) async {
     _statusCheckTimer?.cancel();
     await _ordersState.deleteOrder(
       orderId: orderId,
-      account: account,
     );
 
     clearCheckout();
@@ -174,7 +172,6 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                       } else {
                         _handleCancel(
                           order.orderId.toString(),
-                          place.place!.place.account[0],
                           place.placeId,
                         );
                       }
