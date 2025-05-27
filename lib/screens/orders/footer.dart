@@ -88,7 +88,19 @@ class _FooterState extends State<Footer> {
     });
   }
 
-  void _onMenuPressed() {
+  void handleSend() {
+    _showAmountField = true;
+
+    widget.onSend(
+      double.parse(_amountController.text),
+      _messageController.text,
+      widget.place!.account,
+    );
+  }
+
+  void handleMenuPress() {
+    _showAmountField = true;
+
     context.go('/${widget.placeId}/menu');
   }
 
@@ -130,7 +142,7 @@ class _FooterState extends State<Footer> {
             ),
           if (hasMenu)
             WideButton(
-              onPressed: _onMenuPressed,
+              onPressed: handleMenuPress,
               disabled: false,
               child: Text(
                 'Menu',
@@ -150,11 +162,7 @@ class _FooterState extends State<Footer> {
               amountFocusNode: widget.amountFocusNode,
               messageFocusNode: widget.messageFocusNode,
               onToggleField: _toggleField,
-              onSend: () => widget.onSend(
-                double.parse(_amountController.text),
-                _messageController.text,
-                widget.place!.account,
-              ),
+              onSend: handleSend,
               // loading: paying,
               // disabled: disabled,
               // error: error,

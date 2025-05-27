@@ -38,6 +38,7 @@ class DefaultNFCService implements NFCService {
         NfcPollingOption.iso15693,
         NfcPollingOption.iso18092,
       },
+      noPlatformSoundsAndroid: true,
       alertMessageIos: message ?? 'Scan to confirm',
       onDiscovered: (NfcTag rawTag) async {
         final tag = NdefAndroid.from(rawTag);

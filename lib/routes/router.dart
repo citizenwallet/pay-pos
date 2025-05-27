@@ -55,6 +55,26 @@ GoRouter createRouter(
             },
           ),
           GoRoute(
+            name: 'OrderPay',
+            path: '/:placeId/order/pay',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+
+              final id = placeId ?? state.pathParameters['placeId']!;
+
+              final items = extra?['items'] as List<Map<String, dynamic>>?;
+              final amount = extra?['amount'] as double?;
+              final description = extra?['description'] as String?;
+
+              return OrderPayScreen(
+                placeId: id,
+                items: items ?? [],
+                amount: amount ?? 0.0,
+                description: description ?? '',
+              );
+            },
+          ),
+          GoRoute(
             name: 'Order',
             path: '/:placeId/order/:orderId',
             builder: (context, state) {
@@ -80,23 +100,6 @@ GoRouter createRouter(
               final id = placeId ?? state.pathParameters['placeId']!;
               return PlaceMenuScreen(
                 placeId: id,
-              );
-            },
-          ),
-          GoRoute(
-            name: 'OrderPay',
-            path: '/:placeId/order/:orderId/pay',
-            builder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>?;
-
-              final items = extra?['items'] as List<Map<String, dynamic>>?;
-              final amount = extra?['amount'] as double?;
-              final description = extra?['description'] as String?;
-
-              return OrderPayScreen(
-                items: items ?? [],
-                amount: amount ?? 0.0,
-                description: description ?? '',
               );
             },
           ),

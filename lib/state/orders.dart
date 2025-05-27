@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
+import 'package:pay_pos/services/audio/audio.dart';
 import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/services/config/service.dart';
 import 'package:pay_pos/services/nfc/default.dart';
@@ -14,6 +15,7 @@ import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
 class OrdersState with ChangeNotifier {
+  final AudioService _audioService = AudioService();
   final PreferencesService _preferencesService = PreferencesService();
   final SecureStorageService _secureStorageService = SecureStorageService();
   final NFCService _nfcService = DefaultNFCService();
@@ -87,10 +89,10 @@ class OrdersState with ChangeNotifier {
   List<GlobalKey<State<StatefulWidget>>> categoryKeys = [];
   List<Order> orders = [];
   int total = 0;
-  int orderId = 0;
+  int? orderId;
   String orderStatus = "";
 
-  bool loading = false;
+  bool loading = true;
   bool error = false;
 
   Future<void> fetchOrders() async {
@@ -138,7 +140,6 @@ class OrdersState with ChangeNotifier {
       );
 
       orderId = response.orderId;
-      loading = false;
 
       if (isNfcAvailable) {
         nfcReading = true;
@@ -147,13 +148,13 @@ class OrdersState with ChangeNotifier {
           nfcSerial = serial;
           safeNotifyListeners();
 
+          loading = false;
+
           await ordersService.createCardOrder(
             serial: serial,
             orderId: orderId.toString(),
             headers: headers,
           );
-
-          loading = false;
 
           safeNotifyListeners();
         });
@@ -163,7 +164,8 @@ class OrdersState with ChangeNotifier {
 
       return orderId;
     } catch (e, s) {
-      loading = false;
+      loading = true;
+      orderStatus = 'pending';
       error = true;
       safeNotifyListeners();
 
@@ -197,18 +199,17 @@ class OrdersState with ChangeNotifier {
     }
   }
 
-  Future<void> checkOrderStatus({
-    required String orderId,
-  }) async {
-    loading = true;
-    error = false;
-    safeNotifyListeners();
+  Future<void> checkOrderStatus({required Function() onSuccess}) async {
     try {
+      if (orderId == null) {
+        return;
+      }
+
       final connection = signatureAuthService.connect();
       final headers = connection.headers;
 
       final response = await ordersService.checkOrderStatus(
-        orderId: orderId,
+        orderId: orderId.toString(),
         headers: headers,
       );
 
@@ -220,8 +221,18 @@ class OrdersState with ChangeNotifier {
         nfcSerial = null;
       }
 
+      if (orderStatus == 'paid') {
+        _audioService.txNotification();
+        onSuccess();
+        loading = false;
+        safeNotifyListeners();
+        return;
+      }
+
       safeNotifyListeners();
-    } catch (e) {
+    } catch (e, s) {
+      print(e);
+      print(s);
       error = true;
       safeNotifyListeners();
     }
@@ -251,5 +262,13 @@ class OrdersState with ChangeNotifier {
       error = true;
       safeNotifyListeners();
     }
+  }
+
+  void clearOrder() {
+    orderId = null;
+    orderStatus = '';
+    loading = false;
+    error = false;
+    safeNotifyListeners();
   }
 }

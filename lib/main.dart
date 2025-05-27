@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/routes/router.dart';
+import 'package:pay_pos/services/audio/audio.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/state/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,10 @@ void main() async {
   await dotenv.load(fileName: '.env');
 
   await init();
+
+  final audioService = AudioService();
+
+  await audioService.init();
 
   // await MainDB().init('main');
   await PreferencesService().init(await SharedPreferences.getInstance());

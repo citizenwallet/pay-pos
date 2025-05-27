@@ -9,18 +9,16 @@ import 'package:pay_pos/state/checkout.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
+import 'package:provider/provider.dart';
 
 class SelectedItemsList extends StatelessWidget {
-  final CheckoutState checkoutState;
-
   const SelectedItemsList({
     super.key,
-    required this.checkoutState,
   });
 
   @override
   Widget build(BuildContext context) {
-    final items = checkoutState.checkout.items;
+    final items = context.watch<CheckoutState>().checkout.items;
 
     if (items.isEmpty) {
       return const SizedBox.shrink();
@@ -52,7 +50,6 @@ class SelectedItemsList extends StatelessWidget {
           ...items.map(
             (item) => SelectedItemTile(
               item: item,
-              checkoutState: checkoutState,
             ),
           ),
         ],
@@ -63,12 +60,10 @@ class SelectedItemsList extends StatelessWidget {
 
 class SelectedItemTile extends StatelessWidget {
   final CheckoutItem item;
-  final CheckoutState checkoutState;
 
   const SelectedItemTile({
     super.key,
     required this.item,
-    required this.checkoutState,
   });
 
   @override

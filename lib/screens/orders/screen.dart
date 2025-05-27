@@ -83,21 +83,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _onPayPressed(
       String description, double total, String account) async {
-    final orderId = await _ordersState.createOrder(
+    _ordersState.createOrder(
       items: [],
       description: description,
       total: total,
     );
 
-    if (orderId == null) {
-      return;
-    }
-
     if (!mounted) return;
 
     final navigator = GoRouter.of(context);
 
-    navigator.push('/${widget.placeId}/order/$orderId/pay', extra: {
+    amountFocusNode.unfocus();
+    messageFocusNode.unfocus();
+
+    navigator.push('/${widget.placeId}/order/pay', extra: {
       'amount': total,
       'description': description,
     });
