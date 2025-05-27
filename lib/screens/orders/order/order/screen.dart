@@ -226,7 +226,7 @@ class _OrderScreenState extends State<OrderScreen> {
       case OrderStatus.cancelled:
         return CupertinoColors.systemRed;
       case OrderStatus.refunded:
-        return CupertinoColors.systemGreen;
+        return CupertinoColors.activeBlue;
       case OrderStatus.pending:
       default:
         return CupertinoColors.systemOrange;
