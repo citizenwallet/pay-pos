@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_pos/models/menu_item.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:provider/provider.dart';
 
@@ -46,6 +47,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   Timer? _scrollThrottle;
 
   late OrdersState _ordersState;
+  late CheckoutState _checkoutState;
 
   static const double headerHeight = _StickyHeaderDelegate.height;
   static const double detectionSensitivity = 0.5; // 0.5 = half header height
@@ -63,7 +65,9 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
     _ordersState.isPollingEnabled = false;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkoutState = context.read<CheckoutState>();
+    });
   }
 
   void onLoad() {
@@ -73,19 +77,23 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _currentVisibleCategory = placeMenu.categories[0];
   }
 
-  Future<void> _handlePay(List<Map<String, dynamic>> items, String description,
+  Future<void> handlePay(List<Map<String, dynamic>> items, String description,
       double total, String account) async {
-    final orderId = await _ordersState.createOrder(
+    _ordersState.createOrder(
       items: items,
       description: description,
       total: total,
     );
 
-    context.go('/${widget.placeId}/order/$orderId/pay', extra: {
+    context.go('/${widget.placeId}/order/pay', extra: {
       'items': items,
       'amount': total,
       'description': description,
     });
+  }
+
+  Future<void> handleBankCard(double total) async {
+    _ordersState.openPayClient(widget.placeId, total);
   }
 
   @override
@@ -100,6 +108,8 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   }
 
   void goBack() {
+    _checkoutState.clear();
+
     context.go('/${widget.placeId}');
   }
 
@@ -175,6 +185,18 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _menuScrollController.addListener(_onScroll);
   }
 
+  void handleAddItem(MenuItem menuItem) {
+    _checkoutState.addItem(menuItem);
+  }
+
+  void handleIncrease(MenuItem menuItem) {
+    _checkoutState.increaseItem(menuItem);
+  }
+
+  void handleDecrease(MenuItem menuItem) {
+    _checkoutState.decreaseItem(menuItem);
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoryKeys = context.watch<PlaceOrderState>().categoryKeys;
@@ -196,17 +218,6 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: 10,
-                ),
-                GestureDetector(
-                  onTap: goBack,
-                  child: LeftChevron(),
-                ),
-              ],
-            ),
             CategoryScroll(
               categories: placeMenu?.categories ?? [],
               tabScrollController: tabScrollController,
@@ -261,7 +272,9 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
                               if (index >= items.length) return null;
                               return MenuListItem(
                                 menuItem: items[index],
-                                checkoutState: checkoutState,
+                                onAddToCart: handleAddItem,
+                                onIncrease: handleIncrease,
+                                onDecrease: handleDecrease,
                               );
                             },
                             childCount: menuItems
@@ -276,15 +289,23 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
             ),
             Footer(
               checkoutTotal: checkoutTotal,
-              onSend: () {
-                final items = checkout.items
-                    .map((item) => {
-                          'id': item.menuItem.id,
-                          'quantity': item.quantity,
-                        })
-                    .toList();
-                _handlePay(items, "", checkout.total, place!.place.account);
+              onPay: () {
+                handlePay(
+                  checkout.items
+                      .map((item) => {
+                            'id': item.menuItem.id,
+                            'quantity': item.quantity,
+                          })
+                      .toList(),
+                  "",
+                  checkout.total,
+                  place!.place.account,
+                );
               },
+              onBankCard: () {
+                handleBankCard(checkout.total);
+              },
+              onCancel: goBack,
             ),
           ],
         ),

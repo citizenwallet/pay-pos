@@ -14,7 +14,8 @@ import 'package:pay_pos/widgets/wide_button.dart';
 
 class Footer extends StatefulWidget {
   final String placeId;
-  final Function(double, String?, String) onSend;
+  final Function(double, String?, String) onPay;
+  final Function(double) onPayClient;
   final FocusNode amountFocusNode;
   final FocusNode messageFocusNode;
   final Place? place;
@@ -27,7 +28,8 @@ class Footer extends StatefulWidget {
   const Footer({
     super.key,
     required this.placeId,
-    required this.onSend,
+    required this.onPay,
+    required this.onPayClient,
     required this.amountFocusNode,
     required this.messageFocusNode,
     this.place,
@@ -53,6 +55,7 @@ class _FooterState extends State<Footer> {
   final TextEditingController _messageController = TextEditingController();
 
   bool _showAmountField = true;
+  double? _amount;
 
   @override
   void initState() {
@@ -88,14 +91,38 @@ class _FooterState extends State<Footer> {
     });
   }
 
-  void handleSend() {
-    _showAmountField = true;
+  void handleAmountChange(double amount) {
+    setState(() {
+      _amount = amount == 0 ? null : amount;
+    });
+  }
 
-    widget.onSend(
+  void handlePay() {
+    _showAmountField = true;
+    widget.amountFocusNode.unfocus();
+    widget.messageFocusNode.unfocus();
+
+    widget.onPay(
       double.parse(_amountController.text),
       _messageController.text,
       widget.place!.account,
     );
+
+    _amount = null;
+    _amountController.clear();
+    _messageController.clear();
+  }
+
+  void handlePayClient() {
+    _showAmountField = true;
+    widget.amountFocusNode.unfocus();
+    widget.messageFocusNode.unfocus();
+
+    widget.onPayClient(double.parse(_amountController.text));
+
+    _amount = null;
+    _amountController.clear();
+    _messageController.clear();
   }
 
   void handleMenuPress() {
@@ -140,7 +167,7 @@ class _FooterState extends State<Footer> {
                 child: CupertinoActivityIndicator(),
               ),
             ),
-          if (hasMenu)
+          if (hasMenu && _amount == null)
             WideButton(
               onPressed: handleMenuPress,
               disabled: false,
@@ -153,7 +180,55 @@ class _FooterState extends State<Footer> {
                 ),
               ),
             ),
-          if (widget.display == Display.amountAndMenu) SizedBox(height: 10),
+          if (_amount != null)
+            WideButton(
+              onPressed: handlePay,
+              disabled: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Brussels Pay',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.white,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Image.asset(
+                    'assets/icons/nfc.png',
+                    width: 20,
+                    height: 20,
+                  ),
+                ],
+              ),
+            ),
+          if (_amount != null) SizedBox(height: 10),
+          if (_amount != null)
+            WideButton(
+              onPressed: handlePayClient,
+              disabled: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Bank Card',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.white,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    CupertinoIcons.creditcard,
+                    color: CupertinoColors.white,
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(height: 10),
           if (displayAmount && widget.place != null)
             TransactionInputRow(
               showAmountField: _showAmountField,
@@ -161,10 +236,10 @@ class _FooterState extends State<Footer> {
               messageController: _messageController,
               amountFocusNode: widget.amountFocusNode,
               messageFocusNode: widget.messageFocusNode,
+              onAmountChange: handleAmountChange,
               onToggleField: _toggleField,
-              onSend: handleSend,
               // loading: paying,
-              // disabled: disabled,
+              disabled: _amount == null,
               // error: error,
             ),
         ],

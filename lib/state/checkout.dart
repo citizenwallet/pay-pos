@@ -32,6 +32,11 @@ class CheckoutState with ChangeNotifier {
     super.dispose();
   }
 
+  void clear() {
+    checkout = checkout.clear();
+    safeNotifyListeners();
+  }
+
   void addItem(
     MenuItem menuItem, {
     int quantity = 1,

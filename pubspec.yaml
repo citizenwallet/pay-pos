@@ -103,6 +103,7 @@ flutter:
     - assets/logo.png
     - assets/logo.jpg
     - assets/audio/tx_notification.wav
+    - assets/icons/nfc.png
     - assets/icons/profile.svg
     - assets/icons/profile.png
     - assets/icons/profile.jpg

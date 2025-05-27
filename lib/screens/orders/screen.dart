@@ -81,11 +81,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.dispose();
   }
 
-  Future<void> _onPayPressed(
-      String description, double total, String account) async {
+  void handlePay(double total, String? description, String account) async {
     _ordersState.createOrder(
       items: [],
-      description: description,
+      description: description ?? '',
       total: total,
     );
 
@@ -102,16 +101,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
     });
   }
 
+  void handlePayClient(double total) async {
+    _ordersState.openPayClient(widget.placeId, total);
+  }
+
   void handleOrderPressed(Order order) {
     final navigator = GoRouter.of(context);
 
     navigator.push('/${widget.placeId}/order/${order.id}', extra: {
       'order': order,
     });
-  }
-
-  void sendMessage(double amount, String? message, String account) {
-    _onPayPressed(message!, amount, account);
   }
 
   void _dismissKeyboard() {
@@ -159,7 +158,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
               Footer(
                 placeId: widget.placeId,
-                onSend: sendMessage,
+                onPay: handlePay,
+                onPayClient: handlePayClient,
                 amountFocusNode: amountFocusNode,
                 messageFocusNode: messageFocusNode,
                 display: Display.amountAndMenu,

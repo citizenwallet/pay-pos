@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
@@ -12,6 +13,7 @@ import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:pay_pos/services/sigauth.dart';
 import 'package:pay_pos/services/wallet/wallet.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 
 class OrdersState with ChangeNotifier {
@@ -110,6 +112,26 @@ class OrdersState with ChangeNotifier {
       error = true;
       safeNotifyListeners();
     }
+  }
+
+  Future<bool> openPayClient(String placeId, double total) async {
+    final scheme = dotenv.env['VIVA_PAY_CLIENT_SCHEME'];
+
+    final appBundleId = dotenv.env['APP_BUNDLE_ID'];
+
+    final action = 'sale';
+
+    final appScheme = dotenv.env['APP_SCHEME'];
+
+    final int totalInCents = (total * 100).round();
+    if (totalInCents <= 0) {
+      throw Exception('Total amount must be greater than 0');
+    }
+
+    final request =
+        '$scheme?appId=$appBundleId&action=$action&amount=$totalInCents&callback=${appScheme}payclient/$placeId';
+
+    return launchUrl(Uri.parse(request), mode: LaunchMode.externalApplication);
   }
 
   Future<int?> createOrder({

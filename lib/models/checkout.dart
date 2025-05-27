@@ -57,6 +57,10 @@ class Checkout {
     );
   }
 
+  Checkout clear() {
+    return Checkout(items: []);
+  }
+
   Checkout addItem(
     MenuItem menuItem, {
     int quantity = 1,

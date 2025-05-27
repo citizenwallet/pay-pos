@@ -18,6 +18,20 @@ import 'package:pay_pos/screens/orders/screen.dart';
 import 'package:pay_pos/state/onboarding.dart';
 import 'package:pay_pos/state/state.dart';
 
+Future<String?> redirectHandler(
+    BuildContext context, GoRouterState state) async {
+  final url = state.uri.toString();
+
+  final parts = url.split('payclient/');
+
+  if (parts.length > 1) {
+    final path = parts[1];
+    return '/$path';
+  }
+
+  return url;
+}
+
 GoRouter createRouter(
   GlobalKey<NavigatorState> rootNavigatorKey,
   GlobalKey<NavigatorState> shellNavigatorKey,
