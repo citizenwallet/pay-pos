@@ -68,7 +68,6 @@ class OrdersService {
         'description': description.trim(),
         'total': totalInCents,
         'posId': posId,
-        'type': "pos",
       };
 
       final response = await apiService.post(
@@ -95,6 +94,36 @@ class OrdersService {
           : orderIdValue as int;
 
       return (orderId: orderId,);
+    } catch (e, s) {
+      throw Exception('Failed to create order: ${e.toString()}');
+    }
+  }
+
+  Future<void> createCardOrder({
+    required String serial,
+    required String orderId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      String url = '/pos/cards/$serial/orders/$orderId/charge';
+
+      final body = {};
+
+      final response = await apiService.patch(
+        url: url,
+        body: body,
+        headers: headers,
+      );
+
+      if (response == null) {
+        throw Exception('Received null response from server');
+      }
+
+      if (response['error'] != null) {
+        throw Exception('Backend error: ${response['error']}');
+      }
+
+      return;
     } catch (e, s) {
       throw Exception('Failed to create order: ${e.toString()}');
     }

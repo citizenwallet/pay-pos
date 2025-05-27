@@ -723,3 +723,19 @@ Future<SUJSONRPCResponse> requestBundler(
 
   return response;
 }
+
+Future<Uint8List> getSerialHash(Config config, String serial,
+    {bool local = true}) async {
+  if (config.cardManagerContract == null) {
+    throw Exception('Card manager not initialized');
+  }
+
+  return config.cardManagerContract!.hashSerial(serial);
+}
+
+Future<EthereumAddress> getCardAddress(Config config, Uint8List hash) async {
+  if (config.cardManagerContract == null) {
+    throw Exception('Card manager not initialized');
+  }
+  return config.cardManagerContract!.getCardAddress(hash);
+}

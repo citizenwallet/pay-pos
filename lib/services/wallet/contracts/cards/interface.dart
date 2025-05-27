@@ -6,9 +6,11 @@ abstract class AbstractCardManagerContract {
 
   EthereumAddress get address;
 
+  Uint8List hashSerial(String serial);
+
   Future<Uint8List> getCardHash(String serial, {bool local = true});
 
-  Future<EthereumAddress> getCardAddress(Uint8List hash);
+  Future<EthereumAddress> getCardAddress(Uint8List serialHash);
 
   Future<Uint8List> createAccountInitCode(Uint8List hash);
 

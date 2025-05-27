@@ -2,17 +2,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
+import 'package:pay_pos/services/config/config.dart';
+import 'package:pay_pos/services/config/service.dart';
+import 'package:pay_pos/services/nfc/default.dart';
+import 'package:pay_pos/services/nfc/service.dart';
 import 'package:pay_pos/services/pay/orders.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:pay_pos/services/sigauth.dart';
+import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
 class OrdersState with ChangeNotifier {
   final PreferencesService _preferencesService = PreferencesService();
   final SecureStorageService _secureStorageService = SecureStorageService();
+  final NFCService _nfcService = DefaultNFCService();
   final OrdersService ordersService;
   late final SignatureAuthService signatureAuthService;
+
+  final ConfigService _configService = ConfigService();
+  late Config _config;
 
   bool _mounted = true;
   bool _isPollingEnabled = true;
@@ -34,6 +43,20 @@ class OrdersState with ChangeNotifier {
       credentials: credentials,
       address: credentials.address,
     );
+
+    isNfcAvailable = await _nfcService.isAvailable();
+    print('isNfcAvailable: $isNfcAvailable');
+    safeNotifyListeners();
+
+    final config = await _configService.getLocalConfig();
+    if (config == null) {
+      print('Community not found in local asset');
+      throw Exception('Community not found in local asset');
+    }
+
+    await config.initContracts();
+
+    _config = config;
   }
 
   bool get isPollingEnabled => _isPollingEnabled;
@@ -53,6 +76,10 @@ class OrdersState with ChangeNotifier {
     _mounted = false;
     super.dispose();
   }
+
+  bool isNfcAvailable = false;
+  bool nfcReading = false;
+  String? nfcSerial;
 
   String placeId;
   PlaceWithMenu? place;
@@ -113,6 +140,25 @@ class OrdersState with ChangeNotifier {
       orderId = response.orderId;
       loading = false;
 
+      if (isNfcAvailable) {
+        nfcReading = true;
+        _nfcService.readSerialNumber().then((serial) async {
+          nfcReading = false;
+          nfcSerial = serial;
+          safeNotifyListeners();
+
+          await ordersService.createCardOrder(
+            serial: serial,
+            orderId: orderId.toString(),
+            headers: headers,
+          );
+
+          loading = false;
+
+          safeNotifyListeners();
+        });
+      }
+
       safeNotifyListeners();
 
       return orderId;
@@ -167,6 +213,12 @@ class OrdersState with ChangeNotifier {
       );
 
       orderStatus = response;
+
+      if (orderStatus == 'paid' && isNfcAvailable) {
+        _nfcService.stop();
+        nfcReading = false;
+        nfcSerial = null;
+      }
 
       safeNotifyListeners();
     } catch (e) {

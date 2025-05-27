@@ -684,6 +684,7 @@ class Config {
 
     if (primaryCardManager != null &&
         primaryCardManager.type == CardManagerType.safe) {
+      print('primaryCardManager initialized: $primaryCardManager');
       cardManagerContract = SafeCardManagerContract(
         keccak256(utf8.encode(primaryCardManager.instanceId!)),
         chain.id,
