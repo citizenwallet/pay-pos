@@ -186,4 +186,36 @@ class OrdersState with ChangeNotifier {
       safeNotifyListeners();
     }
   }
+
+  Future<void> refundOrder({
+    required String orderId,
+    required String account,
+  }) async {
+    loading = true;
+    error = false;
+    safeNotifyListeners();
+
+    try {
+      if (account.isEmpty) {
+        throw Exception("Account cannot be empty");
+      }
+      await _signatureAuth(account);
+
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+
+      final response = await ordersService.refundOrder(
+        orderId: orderId,
+        account: account,
+        headers: headers,
+      );
+
+      loading = false;
+      safeNotifyListeners();
+    } catch (e, s) {
+      loading = false;
+      error = true;
+      safeNotifyListeners();
+    }
+  }
 }

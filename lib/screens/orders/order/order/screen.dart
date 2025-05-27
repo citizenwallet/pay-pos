@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
 //models
 import 'package:pay_pos/models/order.dart';
@@ -7,6 +8,10 @@ import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 import 'package:pay_pos/widgets/refund_confirmation_dialog.dart';
+
+//state
+import 'package:pay_pos/state/orders.dart';
+import 'package:pay_pos/state/place_order.dart';
 
 class OrderScreen extends StatefulWidget {
   final Order order;
@@ -18,6 +23,16 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  late OrdersState ordersState;
+  late PlaceOrderState placeOrderState;
+
+  @override
+  void initState() {
+    super.initState();
+    ordersState = context.read<OrdersState>();
+    placeOrderState = context.read<PlaceOrderState>();
+  }
+
   void _handleRefund() {
     showCupertinoModalPopup(
       context: context,
@@ -27,8 +42,16 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  void _confirmRefund() {
-    print('Refund confirmed');
+  void _confirmRefund() async {
+    print(widget.order.id.toString());
+    print(placeOrderState.account);
+    await ordersState.refundOrder(
+      orderId: widget.order.id.toString(),
+      account: placeOrderState.account,
+    );
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -202,6 +225,8 @@ class _OrderScreenState extends State<OrderScreen> {
         return CupertinoColors.systemGreen;
       case OrderStatus.cancelled:
         return CupertinoColors.systemRed;
+      case OrderStatus.refunded:
+        return CupertinoColors.systemGreen;
       case OrderStatus.pending:
       default:
         return CupertinoColors.systemOrange;

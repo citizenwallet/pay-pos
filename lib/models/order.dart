@@ -11,6 +11,7 @@ enum OrderStatus {
   pending,
   paid,
   cancelled,
+  refunded,
 }
 
 enum OrderType {

@@ -148,20 +148,33 @@ class OrdersService {
 
   Future<void> refundOrder({
     required String orderId,
+    required String account,
+    required Map<String, String> headers,
   }) async {
     try {
       String url = 'pos/$orderId/refund';
 
+      final body = {
+        'account': account,
+      };
+
       final response = await apiService.patch(
         url: url,
-        body: {},
+        body: body,
+        headers: headers,
       );
 
-      print(response);
+      if (response == null) {
+        throw Exception('Received null response from server');
+      }
+
+      if (response['error'] != null) {
+        throw Exception('Backend error: ${response['error']}');
+      }
     } catch (e, s) {
       debugPrint('Failed to refund order: $e');
       debugPrint('Stack trace: $s');
-      throw Exception('Failed to refund order');
+      throw Exception('Failed to refund order: ${e.toString()}');
     }
   }
 }
