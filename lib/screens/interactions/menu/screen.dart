@@ -94,6 +94,8 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
   Future<void> handleBankCard(double total) async {
     _ordersState.openPayClient(widget.placeId, total);
+
+    _checkoutState.clear();
   }
 
   @override
