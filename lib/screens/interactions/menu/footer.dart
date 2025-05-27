@@ -26,6 +26,46 @@ class Footer extends StatefulWidget {
 }
 
 class _FooterState extends State<Footer> {
+  void handlePay() {
+    final disabled = widget.checkoutTotal == 0;
+    if (disabled) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 2),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.exclamationmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('Please select items first'),
+        ),
+      );
+    } else {
+      widget.onPay();
+    }
+  }
+
+  void handleBankCard() {
+    final disabled = widget.checkoutTotal == 0;
+    if (disabled) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 2),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.exclamationmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('Please select items first'),
+        ),
+      );
+    } else {
+      widget.onBankCard();
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -78,27 +118,7 @@ class _FooterState extends State<Footer> {
             children: [
               Expanded(
                 child: WideButton(
-                  onPressed: () => {
-                    if (disabled)
-                      {
-                        toastification.showCustom(
-                          context: context,
-                          autoCloseDuration: const Duration(seconds: 2),
-                          alignment: Alignment.bottomCenter,
-                          builder: (context, toast) => Toast(
-                            icon: const Icon(
-                              CupertinoIcons.exclamationmark_circle_fill,
-                              color: errorColor,
-                            ),
-                            title: const Text('Please select items first'),
-                          ),
-                        ),
-                      }
-                    else
-                      {
-                        widget.onPay(),
-                      }
-                  },
+                  onPressed: handlePay,
                   color: disabled
                       ? primaryColor.withValues(alpha: 0.8)
                       : primaryColor,
@@ -128,27 +148,7 @@ class _FooterState extends State<Footer> {
               SizedBox(width: 4),
               Expanded(
                 child: WideButton(
-                  onPressed: () => {
-                    if (disabled)
-                      {
-                        toastification.showCustom(
-                          context: context,
-                          autoCloseDuration: const Duration(seconds: 2),
-                          alignment: Alignment.bottomCenter,
-                          builder: (context, toast) => Toast(
-                            icon: const Icon(
-                              CupertinoIcons.exclamationmark_circle_fill,
-                              color: errorColor,
-                            ),
-                            title: const Text('Please select items first'),
-                          ),
-                        ),
-                      }
-                    else
-                      {
-                        widget.onBankCard(),
-                      }
-                  },
+                  onPressed: handleBankCard,
                   color: disabled
                       ? primaryColor.withValues(alpha: 0.8)
                       : primaryColor,

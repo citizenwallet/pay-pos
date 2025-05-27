@@ -14,7 +14,7 @@ class IOSSecureStorage {
       ),
       iOptions: IOSOptions(
         accessibility: KeychainAccessibility.first_unlock,
-        synchronizable: true,
+        synchronizable: false,
       ),
     );
   }

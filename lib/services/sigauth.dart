@@ -35,15 +35,6 @@ class SignatureAuthConnection {
         if (redirect != null) 'x-sigauth-redirect': redirect!,
       };
 
-  // Map<String, String> toMap() {
-  //   return {
-  //     'x-sigauth-account': address.hexEip55,
-  //     'x-sigauth-expiry': expiry.toIso8601String(),
-  //     'x-sigauth-signature': signature,
-  //     if (redirect != null) 'x-sigauth-redirect': redirect!,
-  //   };
-  // }
-
   @override
   String toString() =>
       'SignatureAuthConnection(address: ${address.hexEip55}, expiry: $expiry, signature: $signature, redirect: $redirect)';
