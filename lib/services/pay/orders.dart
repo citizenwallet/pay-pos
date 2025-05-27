@@ -182,7 +182,7 @@ class OrdersService {
     required Map<String, String> headers,
   }) async {
     try {
-      String url = 'pos/orders/$orderId/refund';
+      String url = '/pos/orders/$orderId/refund';
 
       final body = {};
 

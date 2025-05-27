@@ -43,8 +43,6 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void _confirmRefund() async {
-    print(widget.order.id.toString());
-    print(placeOrderState.account);
     await ordersState.refundOrder(
       orderId: widget.order.id.toString(),
       account: placeOrderState.account,
