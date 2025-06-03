@@ -1,0 +1,72 @@
+1. No Material Widgets
+
+We use a Cupertino base
+
+2. GoRouter
+
+lib/router
+
+Routing is url based with parameters
+
+3. Provider
+
+lib/state
+
+We use Provider for state management and create providers around routes or route groups:
+- lib/state/state.dart contains functions for wrapping route groups 
+
+other files in the lib/state folder relate to a single state file separated into parts:
+- instantiation of services
+- private variables
+- constructor, init function, a safeNotifyListeners function to safely call notifyListeners
+- state variables (consumed by the UI)
+- functions that modify the state (called from the UI)
+
+variables are accessed through context.watch or context.select in the build method
+functions are accessed by context.read and setting the result in a variable in a widget. this variable will be used to call the function later
+
+if it makes sense, we scope state by the id of the underlying entity it is the state of. this combined with navigation ensure state is cleared when we navigate.
+
+4. Screens
+
+lib/screens
+
+follows a pattern similar to next where we put the screens in folders based on where they are in the router
+
+on a stateful widget, we always include an onLoad function called from WidgetsBinding.instance.addPostFrameCallback in initState (to ensure that a frame has been drawn first)
+
+handlers are named "handleThing". widgets that expose handlers to a parent expose the property as "onThing".
+
+5. Services
+
+lib/services
+
+anything that needs to call a module, api or something external to our app.
+
+separate each service into its own folder.
+
+6. Widgets
+
+lib/widgets
+
+anything that doesn't use state management that we want to re-use.
+
+can be stateful and include local state if needed.
+
+7. Theme
+
+lib/theme
+
+contains global colors used in the app
+
+8. Utils
+
+lib/utils
+
+helper functions
+
+9. Models
+
+lib/models
+
+any model that needs to be shared across the app. should only include app layer models. models related to services should be kept with the service.
