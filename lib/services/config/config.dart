@@ -14,7 +14,6 @@ import 'package:pay_pos/services/wallet/contracts/erc20.dart';
 import 'package:pay_pos/services/wallet/contracts/profile.dart';
 import 'package:pay_pos/services/wallet/contracts/safe_account.dart';
 import 'package:pay_pos/services/wallet/contracts/simple_account.dart';
-import 'package:pay_pos/utils/uint8.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -685,6 +684,7 @@ class Config {
 
     if (primaryCardManager != null &&
         primaryCardManager.type == CardManagerType.safe) {
+      print('primaryCardManager initialized: $primaryCardManager');
       cardManagerContract = SafeCardManagerContract(
         keccak256(utf8.encode(primaryCardManager.instanceId!)),
         chain.id,

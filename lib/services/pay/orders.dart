@@ -16,6 +16,7 @@ class OrdersService {
   Future<({List<Order> orders})> getOrders({
     int? limit,
     int? offset,
+    required Map<String, String> headers,
   }) async {
     try {
       final queryParams = {
@@ -23,7 +24,7 @@ class OrdersService {
         if (offset != null) 'offset': offset.toString(),
       };
 
-      String url = '/places/$placeId/orders/recent';
+      String url = '/pos/orders/recent?placeId=$placeId';
 
       if (queryParams.isNotEmpty) {
         url += '?${Uri(queryParameters: queryParams).query}';
@@ -31,6 +32,7 @@ class OrdersService {
 
       final response = await apiService.get(
         url: url,
+        headers: headers,
       );
 
       final List<Order> orders = (response['orders'] as List)
@@ -49,7 +51,6 @@ class OrdersService {
     required List<Map<String, dynamic>> items,
     required String description,
     required double total,
-    required String account,
     required String posId,
     required Map<String, String> headers,
   }) async {
@@ -59,16 +60,14 @@ class OrdersService {
     }
 
     try {
-      String url = '/places/$placeId/createOrder';
+      String url = '/pos/orders';
 
       final body = {
         'placeId': int.parse(placeId),
         'items': items,
         'description': description.trim(),
         'total': totalInCents,
-        'account': account,
         'posId': posId,
-        'type': "pos",
       };
 
       final response = await apiService.post(
@@ -100,12 +99,42 @@ class OrdersService {
     }
   }
 
+  Future<void> createCardOrder({
+    required String serial,
+    required String orderId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      String url = '/pos/cards/$serial/orders/$orderId/charge';
+
+      final body = {};
+
+      final response = await apiService.patch(
+        url: url,
+        body: body,
+        headers: headers,
+      );
+
+      if (response == null) {
+        throw Exception('Received null response from server');
+      }
+
+      if (response['error'] != null) {
+        throw Exception('Backend error: ${response['error']}');
+      }
+
+      return;
+    } catch (e, s) {
+      throw Exception('Failed to create order: ${e.toString()}');
+    }
+  }
+
   Future<void> deleteOrder({
     required String orderId,
     required Map<String, String> headers,
   }) async {
     try {
-      String url = '/places/$placeId/deleteOrder?orderId=$orderId';
+      String url = '/pos/orders/$orderId';
 
       final response = await apiService.delete(
         url: url,
@@ -127,12 +156,14 @@ class OrdersService {
 
   Future<String> checkOrderStatus({
     required String orderId,
+    required Map<String, String> headers,
   }) async {
     try {
-      String url = '/places/$placeId/orders/paidOrderById?orderId=$orderId';
+      String url = '/pos/orders/$orderId/status';
 
       final response = await apiService.get(
         url: url,
+        headers: headers,
       );
 
       final responseData = response['status'];
@@ -143,6 +174,35 @@ class OrdersService {
       debugPrint('Failed to fetch orders: $e');
       debugPrint('Stack trace: $s');
       throw Exception('Failed to fetch orders');
+    }
+  }
+
+  Future<void> refundOrder({
+    required String orderId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      String url = '/pos/orders/$orderId/refund';
+
+      final body = {};
+
+      final response = await apiService.patch(
+        url: url,
+        body: body,
+        headers: headers,
+      );
+
+      if (response == null) {
+        throw Exception('Received null response from server');
+      }
+
+      if (response['error'] != null) {
+        throw Exception('Backend error: ${response['error']}');
+      }
+    } catch (e, s) {
+      debugPrint('Failed to refund order: $e');
+      debugPrint('Stack trace: $s');
+      throw Exception('Failed to refund order: ${e.toString()}');
     }
   }
 }

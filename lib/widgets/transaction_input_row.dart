@@ -13,7 +13,6 @@ class TransactionInputRow extends StatelessWidget {
   final Function(double)? onAmountChange;
   final Function(String)? onMessageChange;
   final VoidCallback onToggleField;
-  final VoidCallback onSend;
   final bool loading;
   final bool disabled;
   final bool error;
@@ -29,7 +28,6 @@ class TransactionInputRow extends StatelessWidget {
     this.onAmountChange,
     this.onMessageChange,
     required this.onToggleField,
-    required this.onSend,
     this.loading = false,
     this.disabled = false,
     this.error = false,
@@ -90,28 +88,25 @@ class TransactionInputRow extends StatelessWidget {
                 ),
         ),
         SizedBox(width: 10),
-        SendButton(
+        ToggleButton(
           loading: loading,
           disabled: disabled,
           showingAmountField: showAmountField,
           onToggle: onToggleField,
-          onTap: onSend,
         ),
       ],
     );
   }
 }
 
-class SendButton extends StatelessWidget {
-  final VoidCallback onTap;
+class ToggleButton extends StatelessWidget {
   final VoidCallback onToggle;
   final bool showingAmountField;
   final bool loading;
   final bool disabled;
 
-  const SendButton({
+  const ToggleButton({
     super.key,
-    required this.onTap,
     required this.onToggle,
     this.disabled = false,
     this.showingAmountField = true,
@@ -161,25 +156,7 @@ class SendButton extends StatelessWidget {
       );
     }
 
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: disabled ? null : onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: disabled ? mutedColor : primaryColor,
-          shape: BoxShape.circle,
-        ),
-        child: const Center(
-          child: Icon(
-            CupertinoIcons.arrow_down,
-            color: CupertinoColors.white,
-            size: 35,
-          ),
-        ),
-      ),
-    );
+    return SizedBox.shrink();
   }
 }
 
@@ -219,6 +196,10 @@ class AmountFieldWithMessageToggle extends StatelessWidget {
                 placeholderStyle: TextStyle(
                   color: Color(0xFFB7ADC4),
                   fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+                style: TextStyle(
+                  fontSize: 24,
                   fontWeight: FontWeight.w500,
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 11.0, vertical: 12.0),

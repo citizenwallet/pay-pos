@@ -72,6 +72,8 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   toastification: ^3.0.2
   flutter_secure_storage: ^9.2.4
+  nfc_manager: ^4.0.2
+  audio_in_app: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +102,8 @@ flutter:
     - assets/logo.svg
     - assets/logo.png
     - assets/logo.jpg
+    - assets/audio/tx_notification.wav
+    - assets/icons/nfc.png
     - assets/icons/profile.svg
     - assets/icons/profile.png
     - assets/icons/profile.jpg

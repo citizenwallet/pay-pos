@@ -1,20 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/models/place.dart';
-import 'package:pay_pos/state/wallet.dart';
-import 'package:pay_pos/state/pin.dart';
 import 'package:provider/provider.dart';
-import 'package:pay_pos/widgets/pin_entry_dialog.dart';
 
 //models
-import 'package:pay_pos/models/user.dart';
+import 'package:pay_pos/models/place.dart';
 
-//state
-import 'package:pay_pos/services/wallet/wallet.dart';
+//states
+import 'package:pay_pos/state/wallet.dart';
+import 'package:pay_pos/state/pin.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 import 'package:pay_pos/widgets/profile_circle.dart';
+import 'package:pay_pos/widgets/pin_entry_dialog.dart';
 
 class ProfileBar extends StatefulWidget {
   final Place place;

@@ -1,31 +1,25 @@
-// beforePayment.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
-import 'package:pay_pos/widgets/qr/qr.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 //models
 import 'package:pay_pos/models/checkout.dart';
 
+//screens
+import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
+
 //widgets
+import 'package:pay_pos/widgets/qr/qr.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 //state
 import 'package:pay_pos/state/checkout.dart';
 
-//screens
-import 'package:pay_pos/screens/interactions/menu/selected_items.dart';
-
 class QRCodeContent extends StatelessWidget {
   final List<Map<String, dynamic>> items;
   final double amount;
   final String description;
+  final String checkoutUrl;
   final Checkout checkout;
-  final CheckoutState checkoutState;
-  final String orderId;
-  final String slug;
   final double width;
   final double height;
   final bool showSuccess;
@@ -36,10 +30,8 @@ class QRCodeContent extends StatelessWidget {
     required this.items,
     required this.amount,
     required this.description,
+    required this.checkoutUrl,
     required this.checkout,
-    required this.checkoutState,
-    required this.orderId,
-    required this.slug,
     required this.width,
     required this.height,
     this.showSuccess = false,
@@ -69,7 +61,7 @@ class QRCodeContent extends StatelessWidget {
                   color: CupertinoColors.activeGreen,
                 ),
                 Text(
-                  "Payment Received!",
+                  "Paid",
                   style: TextStyle(
                     fontSize: (width * 0.75) * 0.1,
                     fontWeight: FontWeight.bold,
@@ -97,62 +89,51 @@ class QRCodeContent extends StatelessWidget {
         else
           Column(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 5,
-                  horizontal: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Scan to pay",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    SizedBox(
-                      width: (width * 0.75) * 0.05,
-                      height: (width * 0.75) * 0.06,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  QR(
-                    data:
-                        "${dotenv.env['CHECKOUT_BASE_URL']}/$slug?orderId=$orderId",
-                    logo: 'assets/logo.png',
-                    size: (width * 0.75),
-                    padding: const EdgeInsets.all(14),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: QR(
+                      data: checkoutUrl,
+                      logo: 'assets/logo.png',
+                      size: (width * 0.75),
+                      padding: const EdgeInsets.all(20),
+                    ),
                   ),
                   Positioned(
+                    top: 6,
                     child: Container(
-                      width: (width * 0.15),
-                      height: (width * 0.15),
-                      decoration: BoxDecoration(
-                        color: theme.scaffoldBackgroundColor,
-                        borderRadius: BorderRadius.circular(
-                          (width * 0.15) / 2,
-                        ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 12,
                       ),
-                      alignment: Alignment.center,
-                      child: CoinLogo(
-                        size: (width * 0.1),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Scan to pay",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          SizedBox(
+                            width: (width * 0.75) * 0.05,
+                            height: (width * 0.75) * 0.06,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -195,9 +176,7 @@ class QRCodeContent extends StatelessWidget {
                           minHeight: constraints.maxHeight,
                         ),
                         child: IntrinsicHeight(
-                          child: SelectedItemsList(
-                            checkoutState: checkoutState,
-                          ),
+                          child: SelectedItemsList(),
                         ),
                       ),
                     );

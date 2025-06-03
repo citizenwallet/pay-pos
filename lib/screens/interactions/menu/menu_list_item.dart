@@ -12,19 +12,26 @@ import 'package:pay_pos/state/checkout.dart';
 
 //widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
+import 'package:provider/provider.dart';
 
 class MenuListItem extends StatelessWidget {
-  final CheckoutState checkoutState;
   final MenuItem menuItem;
+  final Function(MenuItem) onAddToCart;
+  final Function(MenuItem) onIncrease;
+  final Function(MenuItem) onDecrease;
 
   const MenuListItem({
     super.key,
     required this.menuItem,
-    required this.checkoutState,
+    required this.onAddToCart,
+    required this.onIncrease,
+    required this.onDecrease,
   });
 
   @override
   Widget build(BuildContext context) {
+    final checkout = context.watch<CheckoutState>().checkout;
+
     return Container(
       height: 80,
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -60,17 +67,17 @@ class MenuListItem extends StatelessWidget {
             children: [
               ItemPrice(price: menuItem.priceString),
               const SizedBox(height: 4),
-              if (checkoutState.checkout.quantityOfMenuItem(menuItem) <= 0) ...[
+              if (checkout.quantityOfMenuItem(menuItem) <= 0) ...[
                 AddToCartButton(
-                  onAddToCart: checkoutState.addItem,
+                  onAddToCart: onAddToCart,
                   menuItem: menuItem,
                 ),
               ],
-              if (checkoutState.checkout.quantityOfMenuItem(menuItem) > 0) ...[
+              if (checkout.quantityOfMenuItem(menuItem) > 0) ...[
                 IncDecButton(
-                  onIncrease: checkoutState.increaseItem,
-                  onDecrease: checkoutState.decreaseItem,
-                  quantityOfMenuItem: checkoutState.checkout.quantityOfMenuItem,
+                  onIncrease: onIncrease,
+                  onDecrease: onDecrease,
+                  quantityOfMenuItem: checkout.quantityOfMenuItem,
                   menuItem: menuItem,
                 ),
               ]

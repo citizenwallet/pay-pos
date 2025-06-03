@@ -1,18 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_pos/state/onboarding.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:pay_pos/theme/colors.dart';
 
-//models
-import 'package:pay_pos/screens/settings/settings_profile_bar.dart';
+//states
 import 'package:pay_pos/state/orders.dart';
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/pos.dart';
-import 'package:pay_pos/theme/colors.dart';
+
+//screens
+import 'package:pay_pos/screens/settings/settings_profile_bar.dart';
+
+//widgets
 import 'package:pay_pos/widgets/settings_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
-import 'package:provider/provider.dart';
-import 'package:pay_pos/state/onboarding.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:pay_pos/theme/colors.dart';
@@ -20,12 +21,14 @@ import 'package:pay_pos/screens/orders/footer.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
 
 class OrderPayScreen extends StatefulWidget {
+  final String placeId;
   final List<Map<String, dynamic>> items;
   final double amount;
   final String description;
 
   const OrderPayScreen({
     super.key,
+    required this.placeId,
     required this.items,
     required this.amount,
     required this.description,
@@ -36,11 +39,11 @@ class OrderPayScreen extends StatefulWidget {
 }
 
 class _OrderPayScreenState extends State<OrderPayScreen> {
+  final checkoutBaseurl = dotenv.env['CHECKOUT_BASE_URL'];
+
   late OrdersState _ordersState;
   Timer? _statusCheckTimer;
-  String _orderStatus = 'pending';
-  bool _isLoading = false;
-  bool _showSuccess = false;
+  Timer? _delayedCloseFuture;
 
   @override
   void initState() {
@@ -48,15 +51,35 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ordersState = context.read<OrdersState>();
       _ordersState.isPollingEnabled = false;
-      checkStatusofOrder();
+      onLoad();
     });
   }
 
-  void checkStatusofOrder() {
-    checkOrderStatus();
+  @override
+  void dispose() {
+    _statusCheckTimer?.cancel();
+    _ordersState.isPollingEnabled = true;
+    _ordersState.clearOrder();
+    super.dispose();
+  }
 
-    _statusCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      checkOrderStatus();
+  void onLoad() {
+    _ordersState.checkOrderStatus(onSuccess: handleSuccess);
+
+    _statusCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _ordersState.checkOrderStatus(onSuccess: handleSuccess);
+    });
+  }
+
+  void handleSuccess() {
+    _statusCheckTimer?.cancel();
+
+    _delayedCloseFuture = Timer(const Duration(seconds: 10), () {
+      clearCheckout();
+
+      if (mounted) {
+        context.go('/${widget.placeId}');
+      }
     });
   }
 
@@ -69,71 +92,89 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
     Footer.clearControllers();
   }
 
-  Future<void> checkOrderStatus() async {
-    try {
-      await _ordersState.checkOrderStatus(
-        orderId: _ordersState.orderId.toString(),
-      );
-
-      if (mounted) {
-        setState(() {
-          _orderStatus = _ordersState.orderStatus;
-        });
-
-        if (_ordersState.orderStatus == 'paid') {
-          _statusCheckTimer?.cancel();
-          setState(() {
-            _isLoading = true;
-          });
-
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-                _showSuccess = true;
-              });
-              clearCheckout();
-            }
-          });
-        }
-      }
-    } catch (e) {}
-  }
-
-  Future<void> _handleCancel(
-      String orderId, String account, String placeId) async {
+  Future<void> _handleCancel(String orderId, {bool cancel = false}) async {
     _statusCheckTimer?.cancel();
-    await _ordersState.deleteOrder(
-      orderId: orderId,
-      account: account,
-    );
+    _delayedCloseFuture?.cancel();
+
+    if (cancel) {
+      await _ordersState.deleteOrder(
+        orderId: orderId,
+      );
+    }
 
     clearCheckout();
 
-    context.go('/$placeId');
-  }
-
-  @override
-  void dispose() {
-    _statusCheckTimer?.cancel();
-    _ordersState.isPollingEnabled = true;
-    super.dispose();
+    context.go('/${widget.placeId}');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
 
-    final checkoutState = context.watch<CheckoutState>();
+    final loading = context.select<OrdersState, bool>((state) => state.loading);
 
-    final order = context.watch<OrdersState>();
+    final orderId = context.select<OrdersState, int?>((state) => state.orderId);
+    final orderStatus =
+        context.select<OrdersState, String>((state) => state.orderStatus);
 
-    final place = context.watch<PlaceOrderState>();
+    final slug = context.select<PlaceOrderState, String>((state) => state.slug);
 
-    final checkout = checkoutState.checkout;
+    final checkout =
+        context.select<CheckoutState, Checkout>((state) => state.checkout);
 
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    if (orderId == null) {
+      return CupertinoPageScaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CupertinoActivityIndicator(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    WideButton(
+                      onPressed: () {
+                        _handleCancel(
+                          orderId.toString(),
+                          cancel: orderStatus == 'pending',
+                        );
+                      },
+                      color: surfaceDarkColor.withValues(alpha: 0.8),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.w700,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -150,14 +191,12 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                       items: widget.items,
                       amount: widget.amount,
                       description: widget.description,
+                      checkoutUrl: '$checkoutBaseurl/$slug?orderId=$orderId',
                       checkout: checkout,
-                      orderId: order.orderId.toString(),
-                      slug: place.slug,
                       width: screenWidth,
                       height: screenHeight,
-                      checkoutState: checkoutState,
-                      showSuccess: _showSuccess,
-                      isLoading: _isLoading,
+                      showSuccess: orderStatus == 'paid' && !loading,
+                      isLoading: orderStatus == 'pending' && !loading,
                     ),
                   ],
                 ),
@@ -167,21 +206,20 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                 children: [
                   WideButton(
                     onPressed: () {
-                      if (_orderStatus == 'paid') {
+                      if (orderStatus == 'paid') {
                         clearCheckout();
 
-                        context.go('/${place.placeId}');
+                        context.go('/${widget.placeId}');
                       } else {
                         _handleCancel(
-                          order.orderId.toString(),
-                          place.place!.place.account[0],
-                          place.placeId,
+                          orderId.toString(),
+                          cancel: orderStatus == 'pending',
                         );
                       }
                     },
                     color: surfaceDarkColor.withValues(alpha: 0.8),
                     child: Text(
-                      _orderStatus == 'paid' ? 'Back to Orders' : 'Cancel',
+                      orderStatus == 'paid' ? 'Back to Orders' : 'Cancel',
                       style: TextStyle(
                         fontSize: screenWidth * 0.045,
                         fontWeight: FontWeight.w700,

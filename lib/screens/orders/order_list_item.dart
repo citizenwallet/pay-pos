@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pay_pos/models/menu_item.dart';
-
-import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/utils/date.dart';
+
+//models
+import 'package:pay_pos/models/menu_item.dart';
+import 'package:pay_pos/models/order.dart';
+
+//widgets
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 class OrderListItem extends StatelessWidget {
@@ -73,9 +76,15 @@ class OrderListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Amount(amount: order.total),
+        Amount(
+          amount: order.total,
+          isRefunded: order.status == OrderStatus.refunded,
+        ),
         SizedBox(height: 4),
-        TimeAgo(createdAt: order.createdAt),
+        TimeAgo(
+          createdAt: order.createdAt,
+          isPending: order.status == OrderStatus.pending,
+        ),
       ],
     );
   }
@@ -273,10 +282,12 @@ class PaymentMethodBadge extends StatelessWidget {
 
 class Amount extends StatelessWidget {
   final double amount;
+  final bool isRefunded;
 
   const Amount({
     super.key,
     required this.amount,
+    this.isRefunded = false,
   });
 
   @override
@@ -293,7 +304,8 @@ class Amount extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: theme.primaryColor,
+            color: isRefunded ? textMutedColor : theme.primaryColor,
+            decoration: isRefunded ? TextDecoration.lineThrough : null,
           ),
         ),
       ],
@@ -303,16 +315,21 @@ class Amount extends StatelessWidget {
 
 class TimeAgo extends StatelessWidget {
   final DateTime createdAt;
+  final bool isPending;
 
-  const TimeAgo({super.key, required this.createdAt});
+  const TimeAgo({
+    super.key,
+    required this.createdAt,
+    this.isPending = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      getTimeAgo(createdAt),
+      isPending ? 'receiving...' : getTimeAgo(createdAt),
       style: const TextStyle(
         fontSize: 10,
-        color: Color(0xFF8F8A9D),
+        color: textMutedColor,
         fontWeight: FontWeight.w600,
       ),
     );

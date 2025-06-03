@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
-
 import 'package:flutter/services.dart';
+
+//models
 import 'package:pay_pos/models/place.dart';
+
+//widgets
 import 'package:pay_pos/widgets/profile_circle.dart';
 
 class SettingsProfileBar extends StatefulWidget {

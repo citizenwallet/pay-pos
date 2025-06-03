@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pay_pos/models/order.dart';
 import 'dart:async';
 
 //models
 import 'package:pay_pos/models/place.dart';
+import 'package:pay_pos/models/order.dart';
 
 //screens
 import 'package:pay_pos/screens/orders/footer.dart';
@@ -81,27 +81,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.dispose();
   }
 
-  Future<void> _onPayPressed(
-      String description, double total, String account) async {
-    final orderId = await _ordersState.createOrder(
+  void handlePay(double total, String? description, String account) async {
+    _ordersState.createOrder(
       items: [],
-      description: description,
+      description: description ?? '',
       total: total,
-      account: account,
     );
-
-    if (orderId == null) {
-      return;
-    }
 
     if (!mounted) return;
 
     final navigator = GoRouter.of(context);
 
-    navigator.push('/${widget.placeId}/order/$orderId/pay', extra: {
+    amountFocusNode.unfocus();
+    messageFocusNode.unfocus();
+
+    navigator.push('/${widget.placeId}/order/pay', extra: {
       'amount': total,
       'description': description,
     });
+  }
+
+  void handlePayClient(double total) async {
+    _ordersState.openPayClient(widget.placeId, total);
   }
 
   void handleOrderPressed(Order order) {
@@ -112,19 +113,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
     });
   }
 
-  void sendMessage(double amount, String? message, String account) {
-    _onPayPressed(message!, amount, account);
-  }
-
   void _dismissKeyboard() {
     FocusScope.of(context).unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.width;
-
     final place = context.select((PlaceOrderState state) => state.place);
 
     final orders = context.select((OrdersState state) => state.orders);
@@ -142,17 +136,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              GestureDetector(
-                onTap: () {
-                  // showPinEntryDialog(
-                  //   context,
-                  //   widget.placeId,
-                  //   screenHeight * 0.02,
-                  // );
-                },
-                child: ProfileBar(
-                  place: place.place,
-                ),
+              ProfileBar(
+                place: place.place,
               ),
               Expanded(
                 child: ListView.builder(
@@ -173,7 +158,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
               Footer(
                 placeId: widget.placeId,
-                onSend: sendMessage,
+                onPay: handlePay,
+                onPayClient: handlePayClient,
                 amountFocusNode: amountFocusNode,
                 messageFocusNode: messageFocusNode,
                 display: Display.amountAndMenu,
