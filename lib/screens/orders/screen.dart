@@ -17,6 +17,7 @@ import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/state/orders.dart';
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/wallet.dart';
+import 'package:pay_pos/utils/delay.dart';
 import 'package:provider/provider.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -63,7 +64,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     startPolling();
   }
 
-  void startPolling() {
+  void startPolling() async {
+    await delay(const Duration(milliseconds: 300));
+
     _ordersState.fetchOrders();
 
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
