@@ -52,6 +52,7 @@ class OrdersService {
     required String description,
     required double total,
     required String posId,
+    String? tokenAddress,
     required Map<String, String> headers,
   }) async {
     final int totalInCents = (total * 100).round();
@@ -69,6 +70,10 @@ class OrdersService {
         'total': totalInCents,
         'posId': posId,
       };
+
+      if (tokenAddress != null) {
+        body['token'] = tokenAddress;
+      }
 
       final response = await apiService.post(
         url: url,

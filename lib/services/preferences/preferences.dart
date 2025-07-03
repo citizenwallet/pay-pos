@@ -65,4 +65,14 @@ class PreferencesService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(pinCode);
   }
+
+  Future<void> setTokenAddress(String tokenAddress) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tokenAddress', tokenAddress);
+  }
+
+  Future<String?> getTokenAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('tokenAddress');
+  }
 }

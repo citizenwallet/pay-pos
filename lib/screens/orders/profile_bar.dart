@@ -75,12 +75,12 @@ class _ProfileBarState extends State<ProfileBar> {
                     name: place.name,
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Balance(balance: balance.toStringAsFixed(2)),
-                      const SizedBox(width: 16),
-                    ],
-                  )
+                  // Row(
+                  //   children: [
+                  //     Balance(balance: balance.toStringAsFixed(2)),
+                  //     const SizedBox(width: 16),
+                  //   ],
+                  // )
                 ],
               )
             ],
@@ -102,7 +102,7 @@ class Name extends StatelessWidget {
     return Text(
       name,
       style: const TextStyle(
-        fontSize: 16,
+        fontSize: 26,
         fontWeight: FontWeight.w600,
         color: Color(0xFF14023F),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_pos/services/config/config.dart';
+import 'package:pay_pos/state/wallet.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -14,8 +16,9 @@ import 'package:pay_pos/widgets/wide_button.dart';
 
 class Footer extends StatefulWidget {
   final String placeId;
-  final Function(double, String?, String) onPay;
+  final Function(double, String?, String, {String? tokenAddress}) onPay;
   final Function(double) onPayClient;
+  final Function(TokenConfig) onTokenChange;
   final FocusNode amountFocusNode;
   final FocusNode messageFocusNode;
   final Place? place;
@@ -30,6 +33,7 @@ class Footer extends StatefulWidget {
     required this.placeId,
     required this.onPay,
     required this.onPayClient,
+    required this.onTokenChange,
     required this.amountFocusNode,
     required this.messageFocusNode,
     this.place,
@@ -97,7 +101,7 @@ class _FooterState extends State<Footer> {
     });
   }
 
-  void handlePay() {
+  void handlePay({String? tokenAddress}) {
     _showAmountField = true;
     widget.amountFocusNode.unfocus();
     widget.messageFocusNode.unfocus();
@@ -106,6 +110,7 @@ class _FooterState extends State<Footer> {
       double.parse(_amountController.text),
       _messageController.text,
       widget.place!.account,
+      tokenAddress: tokenAddress,
     );
 
     _amount = null;
@@ -125,6 +130,10 @@ class _FooterState extends State<Footer> {
     _messageController.clear();
   }
 
+  void handleTokenChange(TokenConfig token) {
+    widget.onTokenChange(token);
+  }
+
   void handleMenuPress() {
     _showAmountField = true;
 
@@ -134,6 +143,15 @@ class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
     final placeMenu = context.watch<PlaceOrderState>().placeMenu;
+
+    final tokens =
+        context.select<WalletState, List<TokenConfig>>((state) => state.tokens);
+    final selectedToken = context
+        .select<WalletState, TokenConfig?>((state) => state.selectedToken);
+
+    final supportsPayment = context.select<WalletState, bool>((state) =>
+        state.primaryToken != null &&
+        state.primaryToken!.address == selectedToken?.address);
 
     final hasMenu = (widget.display == Display.menu ||
             widget.display == Display.amountAndMenu) &&
@@ -182,7 +200,7 @@ class _FooterState extends State<Footer> {
             ),
           if (_amount != null)
             WideButton(
-              onPressed: handlePay,
+              onPressed: () => handlePay(tokenAddress: selectedToken?.address),
               disabled: false,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -204,8 +222,8 @@ class _FooterState extends State<Footer> {
                 ],
               ),
             ),
-          if (_amount != null) SizedBox(height: 10),
-          if (_amount != null)
+          if (_amount != null && supportsPayment) SizedBox(height: 10),
+          if (_amount != null && supportsPayment)
             WideButton(
               onPressed: handlePayClient,
               disabled: false,
@@ -238,6 +256,9 @@ class _FooterState extends State<Footer> {
               messageFocusNode: widget.messageFocusNode,
               onAmountChange: handleAmountChange,
               onToggleField: _toggleField,
+              selectedToken: selectedToken,
+              tokens: tokens,
+              onTokenChange: handleTokenChange,
               // loading: paying,
               disabled: _amount == null,
               // error: error,

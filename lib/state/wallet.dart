@@ -23,6 +23,11 @@ class WalletState with ChangeNotifier {
   bool loading = false;
   bool error = false;
 
+  List<TokenConfig> tokens = [];
+  Map<String, TokenConfig> tokenConfigs = {};
+  TokenConfig? primaryToken;
+  TokenConfig? selectedToken;
+
   WalletState() {
     init();
   }
@@ -52,6 +57,22 @@ class WalletState with ChangeNotifier {
 
       _config = config;
       _decimals = config.getPrimaryToken().decimals;
+      tokens = config.tokens.values.toList();
+      tokenConfigs =
+          config.tokens.values.fold<Map<String, TokenConfig>>({}, (map, token) {
+        map[token.address] = token;
+        return map;
+      });
+
+      primaryToken = config.getPrimaryToken();
+
+      final tokenAddress = await _preferencesService.getTokenAddress();
+      if (tokenAddress != null) {
+        selectedToken =
+            tokens.firstWhere((token) => token.address == tokenAddress);
+      } else {
+        selectedToken = tokens.first;
+      }
     } catch (e, s) {
       debugPrint('error: $e');
       debugPrint('stack trace: $s');
@@ -77,6 +98,12 @@ class WalletState with ChangeNotifier {
   Future<void> updateBalance(EthereumAddress address) async {
     _balance = await getBalance(_config, address);
     await _preferencesService.setBalance(_balance);
+    safeNotifyListeners();
+  }
+
+  Future<void> setSelectedToken(TokenConfig token) async {
+    selectedToken = token;
+    await _preferencesService.setTokenAddress(token.address);
     safeNotifyListeners();
   }
 }

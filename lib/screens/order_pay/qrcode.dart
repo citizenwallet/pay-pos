@@ -6,13 +6,15 @@ import 'package:pay_pos/models/checkout.dart';
 
 //screens
 import 'package:pay_pos/screens/interactions/menu/selected_item_list.dart';
+import 'package:pay_pos/services/config/config.dart';
+import 'package:pay_pos/state/wallet.dart';
 
 //widgets
 import 'package:pay_pos/widgets/qr/qr.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
 
 //state
-import 'package:pay_pos/state/checkout.dart';
+import 'package:provider/provider.dart';
 
 class QRCodeContent extends StatelessWidget {
   final List<Map<String, dynamic>> items;
@@ -41,6 +43,9 @@ class QRCodeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context);
+
+    final selectedToken = context
+        .select<WalletState, TokenConfig?>((state) => state.selectedToken);
 
     return Column(
       children: [
@@ -96,7 +101,7 @@ class QRCodeContent extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     child: QR(
                       data: checkoutUrl,
-                      logo: 'assets/logo.png',
+                      logo: selectedToken?.logo ?? 'assets/logo.png',
                       size: (width * 0.75),
                       padding: const EdgeInsets.all(20),
                     ),
@@ -151,6 +156,7 @@ class QRCodeContent extends StatelessWidget {
                   : checkout.total.toStringAsFixed(2),
               fontSize: (width * 0.065),
               logoSize: (width * 0.15),
+              logo: selectedToken?.logo,
             ),
           ],
         ),
@@ -192,19 +198,21 @@ class Balance extends StatelessWidget {
   final String balance;
   final double fontSize;
   final double logoSize;
+  final String? logo;
 
   const Balance({
     super.key,
     required this.balance,
     required this.fontSize,
     required this.logoSize,
+    this.logo,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CoinLogo(size: logoSize),
+        CoinLogo(size: logoSize, logo: logo),
         SizedBox(width: 4),
         Text(
           balance,

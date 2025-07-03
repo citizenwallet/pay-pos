@@ -134,11 +134,11 @@ class OrdersState with ChangeNotifier {
     return launchUrl(Uri.parse(request), mode: LaunchMode.externalApplication);
   }
 
-  Future<int?> createOrder({
-    required List<Map<String, dynamic>> items,
-    required String description,
-    required double total,
-  }) async {
+  Future<int?> createOrder(
+      {required List<Map<String, dynamic>> items,
+      required String description,
+      required double total,
+      String? tokenAddress}) async {
     loading = true;
     error = false;
     safeNotifyListeners();
@@ -159,6 +159,7 @@ class OrdersState with ChangeNotifier {
         total: total,
         posId: address.hexEip55,
         headers: headers,
+        tokenAddress: tokenAddress,
       );
 
       orderId = response.orderId;

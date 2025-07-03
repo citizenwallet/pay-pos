@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/utils/date.dart';
 
@@ -12,12 +13,14 @@ import 'package:pay_pos/widgets/coin_logo.dart';
 class OrderListItem extends StatelessWidget {
   final Order order;
   final Map<int, MenuItem> mappedItems;
+  final Map<String, TokenConfig> tokenConfigs;
   final Function(Order) onPressed;
 
   const OrderListItem({
     super.key,
     required this.order,
     required this.mappedItems,
+    required this.tokenConfigs,
     required this.onPressed,
   });
 
@@ -79,6 +82,7 @@ class OrderListItem extends StatelessWidget {
         Amount(
           amount: order.total,
           isRefunded: order.status == OrderStatus.refunded,
+          logo: order.token != null ? tokenConfigs[order.token]?.logo : null,
         ),
         SizedBox(height: 4),
         TimeAgo(
@@ -271,6 +275,7 @@ class PaymentMethodBadge extends StatelessWidget {
 
     switch (orderType) {
       case OrderType.terminal:
+      case OrderType.pos:
         return _terminalPaymentBadge();
       case OrderType.web:
         return _qrPaymentBadge();
@@ -283,11 +288,13 @@ class PaymentMethodBadge extends StatelessWidget {
 class Amount extends StatelessWidget {
   final double amount;
   final bool isRefunded;
+  final String? logo;
 
   const Amount({
     super.key,
     required this.amount,
     this.isRefunded = false,
+    this.logo,
   });
 
   @override
@@ -297,6 +304,7 @@ class Amount extends StatelessWidget {
       children: [
         CoinLogo(
           size: 16,
+          logo: logo,
         ),
         const SizedBox(width: 4),
         Text(

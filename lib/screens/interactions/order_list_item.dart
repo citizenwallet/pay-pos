@@ -314,6 +314,7 @@ class PaymentMethodBadge extends StatelessWidget {
 
     switch (orderType) {
       case OrderType.terminal:
+      case OrderType.pos:
         return _terminalPaymentBadge();
       case OrderType.web:
         return _qrPaymentBadge();

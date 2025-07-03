@@ -18,6 +18,7 @@ enum OrderType {
   web,
   app,
   terminal,
+  pos,
 }
 
 class Order {
@@ -34,6 +35,7 @@ class Order {
   final OrderType? type;
   final EthereumAddress? account;
   final double fees;
+  final String? token;
 
   Order({
     required this.id,
@@ -49,6 +51,7 @@ class Order {
     this.type,
     this.account,
     this.fees = 0,
+    this.token,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -72,6 +75,7 @@ class Order {
           ? EthereumAddress.fromHex(json['account'])
           : null,
       fees: (json['fees'] ?? 0).toDouble() / 100,
+      token: json['token'],
     );
   }
 

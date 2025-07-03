@@ -11,6 +11,7 @@ import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/screens/orders/footer.dart';
 import 'package:pay_pos/screens/orders/order_list_item.dart';
 import 'package:pay_pos/screens/orders/profile_bar.dart';
+import 'package:pay_pos/services/config/config.dart';
 
 //state
 import 'package:pay_pos/state/orders.dart';
@@ -81,11 +82,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.dispose();
   }
 
-  void handlePay(double total, String? description, String account) async {
+  void handlePay(double total, String? description, String account,
+      {String? tokenAddress}) async {
     _ordersState.createOrder(
       items: [],
       description: description ?? '',
       total: total,
+      tokenAddress: tokenAddress,
     );
 
     if (!mounted) return;
@@ -113,6 +116,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     });
   }
 
+  void handleTokenChange(TokenConfig token) {
+    _walletState.setSelectedToken(token);
+  }
+
   void _dismissKeyboard() {
     FocusScope.of(context).unfocus();
   }
@@ -120,6 +127,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final place = context.select((PlaceOrderState state) => state.place);
+
+    final tokenConfigs =
+        context.select((WalletState state) => state.tokenConfigs);
 
     final orders = context.select((OrdersState state) => state.orders);
 
@@ -151,6 +161,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       key: Key('order-${order.id}'),
                       order: order,
                       mappedItems: place.mappedItems,
+                      tokenConfigs: tokenConfigs,
                       onPressed: handleOrderPressed,
                     );
                   },
@@ -164,6 +175,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 messageFocusNode: messageFocusNode,
                 display: Display.amountAndMenu,
                 place: place.place,
+                onTokenChange: handleTokenChange,
               ),
             ],
           ),

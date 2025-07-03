@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pay_pos/services/config/config.dart';
+import 'package:pay_pos/state/wallet.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -56,6 +58,9 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     final order = widget.order;
 
+    final selectedToken = context
+        .select<WalletState, TokenConfig?>((state) => state.selectedToken);
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text('Order #${order.id}'),
@@ -95,7 +100,10 @@ class _OrderScreenState extends State<OrderScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Amount(amount: order.total),
+                          Amount(
+                            amount: order.total,
+                            logo: selectedToken?.logo,
+                          ),
                         ],
                       ),
                     ),
@@ -113,7 +121,10 @@ class _OrderScreenState extends State<OrderScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            Amount(amount: order.fees),
+                            Amount(
+                              amount: order.fees,
+                              logo: selectedToken?.logo,
+                            ),
                           ],
                         ),
                       ),
@@ -234,10 +245,12 @@ class _OrderScreenState extends State<OrderScreen> {
 
 class Amount extends StatelessWidget {
   final double amount;
+  final String? logo;
 
   const Amount({
     super.key,
     required this.amount,
+    this.logo,
   });
 
   @override
@@ -247,6 +260,7 @@ class Amount extends StatelessWidget {
       children: [
         CoinLogo(
           size: 24,
+          logo: logo,
         ),
         const SizedBox(width: 4),
         Text(

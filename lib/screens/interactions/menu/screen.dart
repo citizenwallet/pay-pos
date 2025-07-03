@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/models/menu_item.dart';
+import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:provider/provider.dart';
 
@@ -78,11 +79,13 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
   }
 
   Future<void> handlePay(List<Map<String, dynamic>> items, String description,
-      double total, String account) async {
+      double total, String account,
+      {String? tokenAddress}) async {
     _ordersState.createOrder(
       items: items,
       description: description,
       total: total,
+      tokenAddress: tokenAddress,
     );
 
     context.go('/${widget.placeId}/order/pay', extra: {
@@ -215,6 +218,9 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
     final checkoutTotal = checkout.total;
 
+    final tokenAddress = context
+        .select<WalletState, String?>((state) => state.selectedToken?.address);
+
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemBackground,
       child: SafeArea(
@@ -302,6 +308,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
                   "",
                   checkout.total,
                   place!.place.account,
+                  tokenAddress: tokenAddress,
                 );
               },
               onBankCard: () {

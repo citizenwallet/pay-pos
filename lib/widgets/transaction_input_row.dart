@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/theme/colors.dart';
 import 'package:pay_pos/utils/formatters.dart';
 import 'package:pay_pos/widgets/coin_logo.dart';
@@ -13,6 +14,9 @@ class TransactionInputRow extends StatelessWidget {
   final Function(double)? onAmountChange;
   final Function(String)? onMessageChange;
   final VoidCallback onToggleField;
+  final TokenConfig? selectedToken;
+  final List<TokenConfig> tokens;
+  final Function(TokenConfig) onTokenChange;
   final bool loading;
   final bool disabled;
   final bool error;
@@ -28,11 +32,80 @@ class TransactionInputRow extends StatelessWidget {
     this.onAmountChange,
     this.onMessageChange,
     required this.onToggleField,
+    required this.selectedToken,
+    required this.tokens,
+    required this.onTokenChange,
     this.loading = false,
     this.disabled = false,
     this.error = false,
     this.onTopUpPressed,
   });
+
+  void handleShowTokenSelector(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 300,
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: Column(
+            children: [
+              Container(
+                height: 50,
+                color: CupertinoColors.systemGrey6.resolveFrom(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      child: Text('Cancel'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    Text(
+                      'Select Token',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    CupertinoButton(
+                      child: Text('Done'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  itemExtent: 50,
+                  onSelectedItemChanged: (int index) {
+                    onTokenChange(tokens[index]);
+                  },
+                  children: tokens.map((token) {
+                    return Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CoinLogo(size: 22, logo: token.logo),
+                          SizedBox(width: 8),
+                          Text(
+                            token.symbol,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,17 +113,6 @@ class TransactionInputRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (!showAmountField) CoinLogo(size: 22),
-        if (!showAmountField) SizedBox(width: 4),
-        if (!showAmountField)
-          Text(
-            amountController.text,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: error ? CupertinoColors.systemRed : Color(0xFF171717),
-            ),
-          ),
         if (!showAmountField)
           CupertinoButton(
             padding: EdgeInsets.zero,
@@ -79,6 +141,9 @@ class TransactionInputRow extends StatelessWidget {
                   focusNode: amountFocusNode,
                   onChange: onAmountChange ?? (_) {},
                   onTopUpPressed: onTopUpPressed ?? () {},
+                  selectedToken: selectedToken,
+                  tokens: tokens,
+                  handleShowTokenSelector: handleShowTokenSelector,
                 )
               : MessageFieldWithAmountToggle(
                   messageController: messageController,
@@ -169,6 +234,9 @@ class AmountFieldWithMessageToggle extends StatelessWidget {
   final bool isSending;
   final bool disabled;
   final bool error;
+  final TokenConfig? selectedToken;
+  final List<TokenConfig> tokens;
+  final Function(BuildContext) handleShowTokenSelector;
 
   AmountFieldWithMessageToggle({
     super.key,
@@ -179,6 +247,9 @@ class AmountFieldWithMessageToggle extends StatelessWidget {
     this.disabled = false,
     this.error = false,
     this.onTopUpPressed,
+    required this.selectedToken,
+    required this.tokens,
+    required this.handleShowTokenSelector,
   });
 
   @override
@@ -216,7 +287,24 @@ class AmountFieldWithMessageToggle extends StatelessWidget {
                 textInputAction: TextInputAction.done,
                 prefix: Padding(
                   padding: EdgeInsets.only(left: 11.0),
-                  child: CoinLogo(size: 33),
+                  child: tokens.length > 1
+                      ? CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => handleShowTokenSelector(context),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CoinLogo(size: 33, logo: selectedToken?.logo),
+                              SizedBox(width: 4),
+                              Icon(
+                                CupertinoIcons.chevron_down,
+                                size: 16,
+                                color: disabled ? mutedColor : primaryColor,
+                              ),
+                            ],
+                          ),
+                        )
+                      : CoinLogo(size: 33, logo: selectedToken?.logo),
                 ),
                 onChanged: (value) {
                   if (value.isEmpty) {

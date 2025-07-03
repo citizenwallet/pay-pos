@@ -340,6 +340,7 @@ class TokenConfig {
   final String symbol;
   final int decimals;
   final int chainId;
+  final String? logo;
 
   TokenConfig({
     required this.standard,
@@ -348,6 +349,7 @@ class TokenConfig {
     required this.symbol,
     required this.decimals,
     required this.chainId,
+    this.logo,
   });
 
   factory TokenConfig.fromJson(Map<String, dynamic> json) {
@@ -358,6 +360,7 @@ class TokenConfig {
       symbol: json['symbol'],
       decimals: json['decimals'],
       chainId: json['chain_id'],
+      logo: json['logo'],
     );
   }
 
@@ -369,6 +372,7 @@ class TokenConfig {
       'symbol': symbol,
       'decimals': decimals,
       'chain_id': chainId,
+      'logo': logo,
     };
   }
 
