@@ -67,37 +67,67 @@ class TransactionInputRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    CupertinoButton(
-                      child: Text('Done'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    const SizedBox(
+                      width: 44,
+                    )
                   ],
                 ),
               ),
               Expanded(
-                child: CupertinoPicker(
-                  itemExtent: 50,
-                  onSelectedItemChanged: (int index) {
-                    onTokenChange(tokens[index]);
-                  },
-                  children: tokens.map((token) {
-                    return Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CoinLogo(size: 22, logo: token.logo),
-                          SizedBox(width: 8),
-                          Text(
-                            token.symbol,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                child: ListView.builder(
+                  itemCount: tokens.length,
+                  itemBuilder: (context, index) {
+                    final token = tokens[index];
+                    final isSelected = selectedToken?.symbol == token.symbol;
+
+                    return GestureDetector(
+                      onTap: () {
+                        onTokenChange(token);
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? CupertinoColors.systemBlue.withOpacity(0.1)
+                              : null,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: CupertinoColors.systemGrey5,
+                              width: 0.5,
                             ),
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          children: [
+                            CoinLogo(size: 22, logo: token.logo),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                token.symbol,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? CupertinoColors.systemBlue
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                CupertinoIcons.check_mark,
+                                color: CupertinoColors.systemBlue,
+                                size: 20,
+                              ),
+                          ],
+                        ),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
               ),
             ],
