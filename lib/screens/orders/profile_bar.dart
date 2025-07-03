@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pay_pos/services/config/config.dart';
+import 'package:pay_pos/state/orders.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -38,9 +40,13 @@ class _ProfileBarState extends State<ProfileBar> {
   Widget build(BuildContext context) {
     CupertinoTheme.of(context);
 
-    final balance = context.watch<WalletState>().balance;
+    final balance = context.watch<OrdersState>().posTotal.totalNet / 100;
 
     final place = widget.place;
+
+    final selectedToken = context.select<WalletState, TokenConfig?>(
+      (state) => state.selectedToken,
+    );
 
     return Container(
       height: 95,
@@ -75,12 +81,15 @@ class _ProfileBarState extends State<ProfileBar> {
                     name: place.name,
                   ),
                   const SizedBox(height: 4),
-                  // Row(
-                  //   children: [
-                  //     Balance(balance: balance.toStringAsFixed(2)),
-                  //     const SizedBox(width: 16),
-                  //   ],
-                  // )
+                  Row(
+                    children: [
+                      Balance(
+                        balance: balance.toStringAsFixed(2),
+                        logo: selectedToken?.logo,
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                  )
                 ],
               )
             ],
@@ -114,14 +123,15 @@ class Name extends StatelessWidget {
 
 class Balance extends StatelessWidget {
   final String balance;
+  final String? logo;
 
-  const Balance({super.key, required this.balance});
+  const Balance({super.key, required this.balance, this.logo});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CoinLogo(size: 33),
+        CoinLogo(size: 33, logo: logo),
         SizedBox(width: 4),
         Text(
           balance,

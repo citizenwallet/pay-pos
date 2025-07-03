@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pay_pos/models/order.dart';
+import 'package:pay_pos/models/pos_total.dart';
 import 'package:pay_pos/services/api/api.dart';
 
 class OrdersService {
@@ -40,6 +41,36 @@ class OrdersService {
           .toList();
 
       return (orders: orders);
+    } catch (e, s) {
+      debugPrint('Failed to fetch orders: $e');
+      debugPrint('Stack trace: $s');
+      throw Exception('Failed to fetch orders');
+    }
+  }
+
+  Future<PosTotal> getPosTotal(
+    String posId,
+    String tokenAddress, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      String url =
+          '/pos/orders/total/$posId?placeId=$placeId&token=$tokenAddress';
+
+      final response = await apiService.get(
+        url: url,
+        headers: headers,
+      );
+
+      if (response == null) {
+        throw Exception('Received null response from server');
+      }
+
+      if (response['error'] != null) {
+        throw Exception('Backend error: ${response['error']}');
+      }
+
+      return PosTotal.fromJson(response);
     } catch (e, s) {
       debugPrint('Failed to fetch orders: $e');
       debugPrint('Stack trace: $s');

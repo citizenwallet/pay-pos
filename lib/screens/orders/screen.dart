@@ -56,16 +56,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Future<void> onLoad() async {
-    final account = await _placeOrderState.fetchPlaceandMenu();
-    if (account != null) {
-      _walletState.startBalancePolling(account);
-    }
+    await _placeOrderState.fetchPlaceandMenu();
 
     startPolling();
   }
 
-  void startPolling() async {
+  void startPolling({String? tokenAddress}) async {
     await delay(const Duration(milliseconds: 300));
+
+    final token = tokenAddress ?? _walletState.selectedToken?.address;
+    if (token != null) {
+      _ordersState.startPosTotalPolling(token);
+    }
 
     _ordersState.fetchOrders();
 
@@ -76,6 +78,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   void stopPolling() {
     _pollingTimer?.cancel();
+    _ordersState.stopPosTotalPolling();
   }
 
   void goBack() {
@@ -85,7 +88,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void dispose() {
     stopPolling();
-    _walletState.stopBalancePolling();
 
     amountFocusNode.dispose();
     messageFocusNode.dispose();
@@ -140,6 +142,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   void handleTokenChange(TokenConfig token) {
     _walletState.setSelectedToken(token);
+    startPolling(tokenAddress: token.address);
   }
 
   void _dismissKeyboard() {

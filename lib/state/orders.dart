@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pay_pos/models/order.dart';
 import 'package:pay_pos/models/place_menu.dart';
 import 'package:pay_pos/models/place_with_menu.dart';
+import 'package:pay_pos/models/pos_total.dart';
 import 'package:pay_pos/services/audio/audio.dart';
 import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/services/config/service.dart';
@@ -12,7 +15,6 @@ import 'package:pay_pos/services/pay/orders.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:pay_pos/services/sigauth.dart';
-import 'package:pay_pos/services/wallet/wallet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -29,6 +31,7 @@ class OrdersState with ChangeNotifier {
 
   bool _mounted = true;
   bool _isPollingEnabled = true;
+  Timer? _pollingTimer;
 
   OrdersState({required this.placeId})
       : ordersService = OrdersService(placeId: placeId) {
@@ -90,7 +93,7 @@ class OrdersState with ChangeNotifier {
   PlaceMenu? placeMenu;
   List<GlobalKey<State<StatefulWidget>>> categoryKeys = [];
   List<Order> orders = [];
-  int total = 0;
+  PosTotal posTotal = PosTotal.zero();
   int? orderId;
   String orderStatus = "";
 
@@ -112,6 +115,35 @@ class OrdersState with ChangeNotifier {
       error = true;
       safeNotifyListeners();
     }
+  }
+
+  Future<void> fetchPosTotal(String tokenAddress) async {
+    final connection = signatureAuthService.connect();
+    final headers = connection.headers;
+    final response = await ordersService.getPosTotal(
+      signatureAuthService.address.hexEip55,
+      tokenAddress,
+      headers: headers,
+    );
+    posTotal = response;
+
+    safeNotifyListeners();
+  }
+
+  Future<void> startPosTotalPolling(String tokenAddress) async {
+    stopPosTotalPolling();
+
+    _pollingTimer = Timer.periodic(
+      Duration(seconds: 1),
+      (_) {
+        fetchPosTotal(tokenAddress);
+      },
+    );
+  }
+
+  Future<void> stopPosTotalPolling() async {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
   }
 
   Future<bool> openPayClient(String placeId, double total) async {

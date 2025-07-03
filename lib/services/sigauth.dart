@@ -53,6 +53,8 @@ class SignatureAuthService {
         _address = address,
         _redirect = redirect;
 
+  EthereumAddress get address => _address;
+
   SignatureAuthConnection connect({DateTime? expiry}) {
     final expiryDate = expiry ?? DateTime.now().add(const Duration(days: 7));
 
