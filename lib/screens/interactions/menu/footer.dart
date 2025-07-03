@@ -126,7 +126,7 @@ class _FooterState extends State<Footer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Brussels Pay',
+                        'QR Code / Card',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -156,7 +156,7 @@ class _FooterState extends State<Footer> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Bank Card',
+                        'Debit / Credit Card',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
