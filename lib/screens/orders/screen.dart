@@ -60,11 +60,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
       _walletState.startBalancePolling(account);
     }
 
+    startPolling();
+  }
+
+  void startPolling() {
     _ordersState.fetchOrders();
 
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       _ordersState.fetchOrders();
     });
+  }
+
+  void stopPolling() {
+    _pollingTimer?.cancel();
   }
 
   void goBack() {
@@ -73,7 +81,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
+    stopPolling();
     _walletState.stopBalancePolling();
 
     amountFocusNode.dispose();
@@ -84,6 +92,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   void handlePay(double total, String? description, String account,
       {String? tokenAddress}) async {
+    stopPolling();
+
     _ordersState.createOrder(
       items: [],
       description: description ?? '',
@@ -91,29 +101,38 @@ class _OrdersScreenState extends State<OrdersScreen> {
       tokenAddress: tokenAddress,
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      startPolling();
+      return;
+    }
 
     final navigator = GoRouter.of(context);
 
     amountFocusNode.unfocus();
     messageFocusNode.unfocus();
 
-    navigator.push('/${widget.placeId}/order/pay', extra: {
+    await navigator.push('/${widget.placeId}/order/pay', extra: {
       'amount': total,
       'description': description,
     });
+
+    startPolling();
   }
 
   void handlePayClient(double total) async {
     _ordersState.openPayClient(widget.placeId, total);
   }
 
-  void handleOrderPressed(Order order) {
+  void handleOrderPressed(Order order) async {
     final navigator = GoRouter.of(context);
 
-    navigator.push('/${widget.placeId}/order/${order.id}', extra: {
+    stopPolling();
+
+    await navigator.push('/${widget.placeId}/order/${order.id}', extra: {
       'order': order,
     });
+
+    startPolling();
   }
 
   void handleTokenChange(TokenConfig token) {

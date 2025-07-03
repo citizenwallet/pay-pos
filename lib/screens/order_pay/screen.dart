@@ -74,7 +74,7 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
   void handleSuccess() {
     _statusCheckTimer?.cancel();
 
-    _delayedCloseFuture = Timer(const Duration(seconds: 10), () {
+    _delayedCloseFuture = Timer(const Duration(seconds: 2), () {
       clearCheckout();
 
       if (mounted) {
