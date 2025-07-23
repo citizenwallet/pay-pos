@@ -67,14 +67,14 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
     tabPositionsListener.itemPositions.addListener(_onItemPositionsChange);
 
-    _ordersState.isPollingEnabled = false;
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkoutState = context.read<CheckoutState>();
     });
   }
 
   void onLoad() {
+    _ordersState.isPollingEnabled = false;
+
     final placeMenu = context.read<PlaceOrderState>().placeMenu;
 
     if (placeMenu == null) return;
@@ -132,7 +132,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _scrollThrottle?.cancel();
     _menuScrollController.removeListener(_throttledOnScroll);
     _menuScrollController.dispose();
-    _ordersState.isPollingEnabled = true;
+    _ordersState.enablePolling();
 
     _backTimer?.cancel();
 

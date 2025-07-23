@@ -80,6 +80,10 @@ class OrdersState with ChangeNotifier {
     safeNotifyListeners();
   }
 
+  void enablePolling() {
+    _isPollingEnabled = true;
+  }
+
   void safeNotifyListeners() {
     if (_mounted) {
       notifyListeners();
@@ -126,23 +130,28 @@ class OrdersState with ChangeNotifier {
   }
 
   Future<void> fetchPosTotal(String tokenAddress) async {
-    final connection = signatureAuthService.connect();
-    final headers = connection.headers;
-    final response = await ordersService.getPosTotal(
-      signatureAuthService.address.hexEip55,
-      tokenAddress,
-      headers: headers,
-    );
-    posTotal = response;
+    try {
+      final connection = signatureAuthService.connect();
+      final headers = connection.headers;
+      final response = await ordersService.getPosTotal(
+        signatureAuthService.address.hexEip55,
+        tokenAddress,
+        headers: headers,
+      );
+      posTotal = response;
 
-    safeNotifyListeners();
+      safeNotifyListeners();
+    } catch (e) {
+      //
+      debugPrint(e.toString());
+    }
   }
 
   Future<void> startPosTotalPolling(String tokenAddress) async {
     stopPosTotalPolling();
 
     _pollingTimer = Timer.periodic(
-      Duration(seconds: 1),
+      Duration(seconds: 2),
       (_) {
         fetchPosTotal(tokenAddress);
       },
@@ -357,6 +366,5 @@ class OrdersState with ChangeNotifier {
     orderStatus = '';
     loading = false;
     error = false;
-    safeNotifyListeners();
   }
 }

@@ -34,7 +34,8 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
+class _OrdersScreenState extends State<OrdersScreen>
+    with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   FocusNode amountFocusNode = FocusNode();
   FocusNode messageFocusNode = FocusNode();
@@ -50,6 +51,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _walletState = context.read<WalletState>();
       _ordersState = context.read<OrdersState>();
@@ -58,14 +62,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        return;
+      case AppLifecycleState.resumed:
+        startPolling();
+        break;
+      case AppLifecycleState.inactive:
+        stopPolling();
+        break;
+    }
+  }
+
   Future<void> onLoad() async {
     await _placeOrderState.fetchPlaceandMenu();
+
+    await delay(const Duration(milliseconds: 300));
 
     startPolling();
   }
 
   void startPolling({String? tokenAddress}) async {
-    await delay(const Duration(milliseconds: 300));
+    stopPolling();
 
     final token = tokenAddress ?? _walletState.selectedToken?.address;
     if (token != null) {
@@ -91,6 +115,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void dispose() {
     stopPolling();
+
+    WidgetsBinding.instance.removeObserver(this);
 
     amountFocusNode.dispose();
     messageFocusNode.dispose();

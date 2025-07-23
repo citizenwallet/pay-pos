@@ -40,11 +40,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
 
-    _placeOrderState = context.read<PlaceOrderState>();
-    _ordersState = context.read<OrdersState>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _placeOrderState = context.read<PlaceOrderState>();
+      _ordersState = context.read<OrdersState>();
+      _posState = context.read<POSState>();
+      _onboardingState = context.read<OnboardingState>();
+
+      onLoad();
+    });
+  }
+
+  void onLoad() {
     _ordersState.isPollingEnabled = false;
-    _posState = context.read<POSState>();
-    _onboardingState = context.read<OnboardingState>();
   }
 
   void goBack(String placeId) {
@@ -54,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void dispose() {
     _pollingTimer?.cancel();
-    _ordersState.isPollingEnabled = true;
+    _ordersState.enablePolling();
     _scrollController.dispose();
     super.dispose();
   }

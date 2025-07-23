@@ -50,7 +50,6 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ordersState = context.read<OrdersState>();
-      _ordersState.isPollingEnabled = false;
       onLoad();
     });
   }
@@ -58,12 +57,14 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
   @override
   void dispose() {
     _statusCheckTimer?.cancel();
-    _ordersState.isPollingEnabled = true;
+    _ordersState.enablePolling();
     _ordersState.clearOrder();
     super.dispose();
   }
 
   void onLoad() {
+    _ordersState.isPollingEnabled = false;
+
     _ordersState.checkOrderStatus(onSuccess: handleSuccess);
 
     _statusCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
