@@ -196,6 +196,8 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                       width: screenWidth,
                       height: screenHeight,
                       showSuccess: orderStatus == 'paid' && !loading,
+                      showInsufficientBalance:
+                          orderStatus == 'insufficient_balance' && !loading,
                       isLoading: orderStatus == 'pending' && !loading,
                     ),
                   ],
@@ -206,7 +208,8 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                 children: [
                   WideButton(
                     onPressed: () {
-                      if (orderStatus == 'paid') {
+                      if (orderStatus == 'paid' ||
+                          orderStatus == 'insufficient_balance') {
                         clearCheckout();
 
                         context.go('/${widget.placeId}');
@@ -219,7 +222,10 @@ class _OrderPayScreenState extends State<OrderPayScreen> {
                     },
                     color: surfaceDarkColor.withValues(alpha: 0.8),
                     child: Text(
-                      orderStatus == 'paid' ? 'Back to Orders' : 'Cancel',
+                      orderStatus == 'paid' ||
+                              orderStatus == 'insufficient_balance'
+                          ? 'Back to Orders'
+                          : 'Cancel',
                       style: TextStyle(
                         fontSize: screenWidth * 0.045,
                         fontWeight: FontWeight.w700,

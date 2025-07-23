@@ -18,7 +18,9 @@ import 'package:pay_pos/state/orders.dart';
 import 'package:pay_pos/state/place_order.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/utils/delay.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 class OrdersScreen extends StatefulWidget {
   final String placeId;
@@ -37,6 +39,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   FocusNode amountFocusNode = FocusNode();
   FocusNode messageFocusNode = FocusNode();
   Timer? _pollingTimer;
+  Timer? _backTimer;
 
   bool isKeyboardVisible = false;
 
@@ -92,7 +95,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
     amountFocusNode.dispose();
     messageFocusNode.dispose();
     _scrollController.dispose();
+
+    _backTimer?.cancel();
     super.dispose();
+  }
+
+  void handlePayError(Exception e) {
+    if (e is InsufficientBalanceException) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 5),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('Insufficient balance'),
+        ),
+      );
+
+      _backTimer = Timer(const Duration(seconds: 5), () {
+        goBack();
+      });
+    }
   }
 
   void handlePay(double total, String? description, String account,
@@ -104,6 +130,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       description: description ?? '',
       total: total,
       tokenAddress: tokenAddress,
+      onError: handlePayError,
     );
 
     if (!mounted) {

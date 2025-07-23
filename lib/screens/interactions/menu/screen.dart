@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pay_pos/models/menu_item.dart';
 import 'package:pay_pos/state/wallet.dart';
 import 'package:pay_pos/theme/colors.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 import 'package:provider/provider.dart';
 
 //states
@@ -14,6 +15,7 @@ import 'package:pay_pos/state/checkout.dart';
 
 //widgets
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:toastification/toastification.dart';
 import 'footer.dart';
 import 'menu_list_item.dart';
 import 'catergory_scroll.dart';
@@ -46,6 +48,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
 
   String _currentVisibleCategory = '';
   Timer? _scrollThrottle;
+  Timer? _backTimer;
 
   late OrdersState _ordersState;
   late CheckoutState _checkoutState;
@@ -78,6 +81,27 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _currentVisibleCategory = placeMenu.categories[0];
   }
 
+  void handlePayError(Exception e) {
+    if (e is InsufficientBalanceException) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 5),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('Insufficient balance'),
+        ),
+      );
+
+      _backTimer = Timer(const Duration(seconds: 5), () {
+        goBack();
+      });
+    }
+  }
+
   Future<void> handlePay(List<Map<String, dynamic>> items, String description,
       double total, String account,
       {String? tokenAddress}) async {
@@ -86,6 +110,7 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
       description: description,
       total: total,
       tokenAddress: tokenAddress,
+      onError: handlePayError,
     );
 
     context.go('/${widget.placeId}/order/pay', extra: {
@@ -108,6 +133,8 @@ class _PlaceMenuScreenState extends State<PlaceMenuScreen> {
     _menuScrollController.removeListener(_throttledOnScroll);
     _menuScrollController.dispose();
     _ordersState.isPollingEnabled = true;
+
+    _backTimer?.cancel();
 
     super.dispose();
   }

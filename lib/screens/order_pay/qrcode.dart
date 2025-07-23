@@ -25,6 +25,7 @@ class QRCodeContent extends StatelessWidget {
   final double width;
   final double height;
   final bool showSuccess;
+  final bool showInsufficientBalance;
   final bool isLoading;
 
   const QRCodeContent({
@@ -37,6 +38,7 @@ class QRCodeContent extends StatelessWidget {
     required this.width,
     required this.height,
     this.showSuccess = false,
+    this.showInsufficientBalance = false,
     this.isLoading = false,
   });
 
@@ -67,6 +69,32 @@ class QRCodeContent extends StatelessWidget {
                 ),
                 Text(
                   "Paid",
+                  style: TextStyle(
+                    fontSize: (width * 0.75) * 0.1,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else if (showInsufficientBalance)
+          Container(
+            width: (width * 0.75),
+            height: (width * 0.75),
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  size: (width * 0.75) * 0.6,
+                  color: CupertinoColors.systemRed,
+                ),
+                Text(
+                  "Insufficient balance",
                   style: TextStyle(
                     fontSize: (width * 0.75) * 0.1,
                     fontWeight: FontWeight.bold,

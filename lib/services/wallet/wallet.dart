@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/services/indexer/signed_request.dart';
+import 'package:pay_pos/services/session/session.dart';
 import 'package:pay_pos/services/wallet/contracts/erc20.dart';
 import 'package:pay_pos/services/wallet/contracts/profile.dart';
 import 'package:pay_pos/services/wallet/models/json_rpc.dart';
@@ -91,22 +92,33 @@ String transferEventSignature(Config config) {
 Future<String> getBalance(
   Config config,
   EthereumAddress addr, {
+  String? tokenAddress,
+  int? chainId,
   BigInt? tokenId,
 }) async {
   try {
-    final tokenStandard = config.getPrimaryToken().standard;
+    final tokenStandard = tokenAddress != null
+        ? config.getToken(tokenAddress, chainId: chainId).standard
+        : config.getPrimaryToken().standard;
 
     BigInt balance = BigInt.zero;
     switch (tokenStandard) {
       case 'erc20':
-        balance =
-            await config.token20Contract.getBalance(addr.hexEip55).timeout(
-                  const Duration(seconds: 4),
-                );
+        final tokenContract = tokenAddress != null
+            ? await config.getTokenContract(tokenAddress, chainId: chainId)
+            : config.token20Contract;
+
+        balance = await tokenContract.getBalance(addr.hexEip55).timeout(
+              const Duration(seconds: 4),
+            );
 
         break;
       case 'erc1155':
-        balance = await config.token1155Contract
+        final tokenContract = tokenAddress != null
+            ? await config.getToken1155Contract(tokenAddress, chainId: chainId)
+            : config.token1155Contract;
+
+        balance = await tokenContract
             .getBalance(addr.hexEip55, tokenId ?? BigInt.zero)
             .timeout(
               const Duration(seconds: 4),
@@ -722,6 +734,17 @@ Future<SUJSONRPCResponse> requestBundler(
   }
 
   return response;
+}
+
+Future<EthereumAddress> getTwoFAAddress(
+  Config config,
+  String source,
+  String type,
+) async {
+  final provider = EthereumAddress.fromHex(
+      config.getPrimarySessionManager().providerAddress);
+  final salt = generateSessionSalt(source, type);
+  return await config.twoFAFactoryContract.getAddress(provider, salt);
 }
 
 Future<Uint8List> getSerialHash(Config config, String serial,

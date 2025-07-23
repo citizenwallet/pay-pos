@@ -15,8 +15,16 @@ import 'package:pay_pos/services/pay/orders.dart';
 import 'package:pay_pos/services/preferences/preferences.dart';
 import 'package:pay_pos/services/secure_storage/secure_storage.dart';
 import 'package:pay_pos/services/sigauth.dart';
+import 'package:pay_pos/services/wallet/wallet.dart';
+import 'package:pay_pos/utils/currency.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
+
+class InsufficientBalanceException implements Exception {
+  final String message = 'insufficient balance';
+
+  InsufficientBalanceException();
+}
 
 class OrdersState with ChangeNotifier {
   final AudioService _audioService = AudioService();
@@ -166,11 +174,13 @@ class OrdersState with ChangeNotifier {
     return launchUrl(Uri.parse(request), mode: LaunchMode.externalApplication);
   }
 
-  Future<int?> createOrder(
-      {required List<Map<String, dynamic>> items,
-      required String description,
-      required double total,
-      String? tokenAddress}) async {
+  Future<int?> createOrder({
+    required List<Map<String, dynamic>> items,
+    required String description,
+    required double total,
+    String? tokenAddress,
+    Function(Exception)? onError,
+  }) async {
     loading = true;
     error = false;
     safeNotifyListeners();
@@ -202,6 +212,29 @@ class OrdersState with ChangeNotifier {
           nfcReading = false;
           nfcSerial = serial;
           safeNotifyListeners();
+
+          final hashedSerial = await getSerialHash(_config, serial);
+
+          final cardAddress = await getCardAddress(_config, hashedSerial);
+
+          final cardBalance = await getBalance(_config, cardAddress,
+              tokenAddress: tokenAddress);
+
+          final token = _config.getToken(tokenAddress);
+
+          final adjustedBalance = formatCurrency(cardBalance, token.decimals);
+
+          final doubleBalance = double.tryParse(adjustedBalance) ?? 0.0;
+
+          if (doubleBalance < total) {
+            loading = false;
+            orderStatus = 'insufficient_balance';
+            safeNotifyListeners();
+
+            onError?.call(InsufficientBalanceException());
+            deleteOrder(orderId: orderId.toString());
+            return;
+          }
 
           loading = false;
 

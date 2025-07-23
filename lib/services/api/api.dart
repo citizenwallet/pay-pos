@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 const netTimeoutSeconds = 60;
 const streamTimeoutSeconds = 10;
 
@@ -22,6 +21,12 @@ class ConflictException implements Exception {
   final String message = 'conflict';
 
   ConflictException();
+}
+
+class BadRequestException implements Exception {
+  final String message = 'bad request';
+
+  BadRequestException();
 }
 
 class APIService {
@@ -54,6 +59,8 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
@@ -94,18 +101,18 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
 
-    return jsonDecode(
-      utf8.decode(response.bodyBytes),
-    );
+    return jsonDecode(utf8.decode(response.bodyBytes));
   }
 
   Future<dynamic> patch({
     String? url,
-    required Object body,
+    Object? body,
     Map<String, String>? headers,
   }) async {
     final mergedHeaders = <String, String>{
@@ -120,7 +127,7 @@ class APIService {
         .patch(
           Uri.parse('$baseURL${url ?? ''}'),
           headers: mergedHeaders,
-          body: jsonEncode(body),
+          body: body != null ? jsonEncode(body) : null,
         )
         .timeout(Duration(seconds: netTimeoutSeconds));
 
@@ -132,6 +139,8 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
@@ -168,6 +177,8 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
@@ -204,6 +215,8 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }
@@ -254,6 +267,8 @@ class APIService {
           throw NotFoundException();
         case 409:
           throw ConflictException();
+        case 400:
+          throw BadRequestException();
       }
       throw Exception('[${response.statusCode}] ${response.reasonPhrase}');
     }

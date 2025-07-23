@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/state/wallet.dart';
+import 'package:pay_pos/widgets/toast/toast.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -13,6 +14,7 @@ import 'package:pay_pos/state/place_order.dart';
 //widgets
 import 'package:pay_pos/widgets/transaction_input_row.dart';
 import 'package:pay_pos/widgets/wide_button.dart';
+import 'package:toastification/toastification.dart';
 
 class Footer extends StatefulWidget {
   final String placeId;
@@ -102,12 +104,28 @@ class _FooterState extends State<Footer> {
   }
 
   void handlePay({String? tokenAddress}) {
+    if (_amount == null) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 5),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('No amount entered'),
+        ),
+      );
+      return;
+    }
+
     _showAmountField = true;
     widget.amountFocusNode.unfocus();
     widget.messageFocusNode.unfocus();
 
     widget.onPay(
-      double.parse(_amountController.text),
+      _amount!,
       _messageController.text,
       widget.place!.account,
       tokenAddress: tokenAddress,
@@ -119,11 +137,27 @@ class _FooterState extends State<Footer> {
   }
 
   void handlePayClient() {
+    if (_amount == null) {
+      toastification.showCustom(
+        context: context,
+        autoCloseDuration: const Duration(seconds: 5),
+        alignment: Alignment.bottomCenter,
+        builder: (context, toast) => Toast(
+          icon: const Icon(
+            CupertinoIcons.xmark_circle_fill,
+            color: errorColor,
+          ),
+          title: const Text('No amount entered'),
+        ),
+      );
+      return;
+    }
+
     _showAmountField = true;
     widget.amountFocusNode.unfocus();
     widget.messageFocusNode.unfocus();
 
-    widget.onPayClient(double.parse(_amountController.text));
+    widget.onPayClient(_amount!);
 
     _amount = null;
     _amountController.clear();

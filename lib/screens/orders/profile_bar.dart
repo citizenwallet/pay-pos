@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pay_pos/services/config/config.dart';
 import 'package:pay_pos/state/orders.dart';
+import 'package:pay_pos/theme/colors.dart';
 import 'package:provider/provider.dart';
 
 //models
@@ -138,6 +139,25 @@ class Balance extends StatelessWidget {
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(width: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 2,
+          ),
+          child: Text(
+            'today',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: textMutedColor,
+            ),
           ),
         ),
       ],

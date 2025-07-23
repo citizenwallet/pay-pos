@@ -13,7 +13,9 @@ import 'package:pay_pos/services/wallet/contracts/erc1155.dart';
 import 'package:pay_pos/services/wallet/contracts/erc20.dart';
 import 'package:pay_pos/services/wallet/contracts/profile.dart';
 import 'package:pay_pos/services/wallet/contracts/safe_account.dart';
+import 'package:pay_pos/services/wallet/contracts/session_manager_module.dart';
 import 'package:pay_pos/services/wallet/contracts/simple_account.dart';
+import 'package:pay_pos/services/wallet/contracts/two_fa_factory.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -341,6 +343,7 @@ class TokenConfig {
   final int decimals;
   final int chainId;
   final String? logo;
+  final String? color;
 
   TokenConfig({
     required this.standard,
@@ -350,6 +353,7 @@ class TokenConfig {
     required this.decimals,
     required this.chainId,
     this.logo,
+    this.color,
   });
 
   factory TokenConfig.fromJson(Map<String, dynamic> json) {
@@ -361,6 +365,7 @@ class TokenConfig {
       decimals: json['decimals'],
       chainId: json['chain_id'],
       logo: json['logo'],
+      color: json['color'],
     );
   }
 
@@ -373,8 +378,11 @@ class TokenConfig {
       'decimals': decimals,
       'chain_id': chainId,
       'logo': logo,
+      'color': color,
     };
   }
+
+  String get key => '$chainId:$address';
 
   // to string
   @override
@@ -395,6 +403,8 @@ class PluginConfig {
   final PluginLaunchMode launchMode;
   final String? action;
   final bool hidden;
+  final String? tokenAddress;
+  final int? chainId;
 
   PluginConfig({
     required this.name,
@@ -403,6 +413,8 @@ class PluginConfig {
     this.launchMode = PluginLaunchMode.external,
     this.action,
     this.hidden = false,
+    this.tokenAddress,
+    this.chainId,
   });
 
   factory PluginConfig.fromJson(Map<String, dynamic> json) {
@@ -415,6 +427,8 @@ class PluginConfig {
           : PluginLaunchMode.external,
       action: json['action'],
       hidden: json['hidden'] ?? false,
+      tokenAddress: json['token_address'],
+      chainId: json['token_chain_id'],
     );
   }
 
@@ -427,6 +441,8 @@ class PluginConfig {
       'launch_mode': launchMode.name,
       if (action != null) 'action': action,
       'hidden': hidden,
+      if (tokenAddress != null) 'token_address': tokenAddress,
+      if (chainId != null) 'token_chain_id': chainId,
     };
   }
 
@@ -608,6 +624,8 @@ class Config {
   late AccountFactoryService accountFactoryContract;
   late ProfileContract profileContract;
   AbstractCardManagerContract? cardManagerContract;
+  late SessionManagerModuleService sessionManagerModuleContract;
+  late TwoFAFactoryService twoFAFactoryContract;
 
   late ERC20Contract token20Contract;
   late ERC1155Contract token1155Contract;
@@ -688,7 +706,6 @@ class Config {
 
     if (primaryCardManager != null &&
         primaryCardManager.type == CardManagerType.safe) {
-      print('primaryCardManager initialized: $primaryCardManager');
       cardManagerContract = SafeCardManagerContract(
         keccak256(utf8.encode(primaryCardManager.instanceId!)),
         chain.id,
@@ -697,6 +714,20 @@ class Config {
       );
       await cardManagerContract!.init();
     }
+
+    sessionManagerModuleContract = SessionManagerModuleService(
+      chain.id,
+      ethClient,
+      getPrimarySessionManager().moduleAddress,
+    );
+    await sessionManagerModuleContract.init();
+
+    twoFAFactoryContract = TwoFAFactoryService(
+      chain.id,
+      ethClient,
+      getPrimarySessionManager().factoryAddress,
+    );
+    await twoFAFactoryContract.init();
   }
 
   Future<SimpleAccount> getSimpleAccount(String address) async {
@@ -836,8 +867,8 @@ class Config {
       scan: ScanConfig.fromJson(json['scan']),
       accounts: (json['accounts'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, ERC4337Config.fromJson(value))),
-      sessions: (json['sessions'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, SessionsConfig.fromJson(value))),
+      sessions: (json['sessions'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, SessionsConfig.fromJson(value))),
       cards: (json['cards'] as Map<String, dynamic>?)
           ?.map((key, value) => MapEntry(key, CardsConfig.fromJson(value))),
       chains: (json['chains'] as Map<String, dynamic>)
@@ -881,8 +912,19 @@ class Config {
     return cards?.isNotEmpty ?? false;
   }
 
-  PluginConfig? getTopUpPlugin() {
-    return plugins?.firstWhereOrNull((plugin) => plugin.action == 'topup');
+  PluginConfig? getTopUpPlugin({String? tokenAddress, int? chainId}) {
+    return plugins?.firstWhereOrNull((plugin) =>
+        plugin.action == 'topup' &&
+        (plugin.tokenAddress != null
+            ? plugin.tokenAddress == tokenAddress
+            : true) &&
+        (plugin.chainId != null ? plugin.chainId == chainId : true));
+  }
+
+  PluginConfig? getPlugin(String tokenAddress, {int? chainId}) {
+    return plugins?.firstWhereOrNull((plugin) =>
+        plugin.tokenAddress == tokenAddress &&
+        (plugin.chainId != null ? plugin.chainId == chainId : true));
   }
 
   TokenConfig getPrimaryToken() {
@@ -892,6 +934,55 @@ class Config {
     }
 
     return primaryToken;
+  }
+
+  TokenConfig getToken(String? tokenAddress, {int? chainId}) {
+    final primaryToken = getPrimaryToken();
+
+    final key =
+        '${chainId ?? primaryToken.chainId}:${tokenAddress ?? primaryToken.address}';
+
+    final token = tokens[key];
+    if (token == null) {
+      throw Exception('Token not found in config');
+    }
+    return token;
+  }
+
+  Future<ERC20Contract> getTokenContract(String tokenAddress,
+      {int? chainId}) async {
+    final primaryToken = getPrimaryToken();
+
+    final key = '${chainId ?? primaryToken.chainId}:$tokenAddress';
+
+    final token = tokens[key];
+    if (token == null) {
+      throw Exception('Token not found in config');
+    }
+    final contract = ERC20Contract(
+      token.chainId,
+      ethClient,
+      token.address,
+    );
+    await contract.init();
+
+    return contract;
+  }
+
+  Future<ERC1155Contract> getToken1155Contract(String tokenAddress,
+      {int? chainId}) async {
+    final primaryToken = getPrimaryToken();
+
+    final key = '${chainId ?? primaryToken.chainId}:$tokenAddress';
+
+    final token = tokens[key];
+    if (token == null) {
+      throw Exception('Token not found in config');
+    }
+    final contract = ERC1155Contract(token.chainId, ethClient, token.address);
+    await contract.init();
+
+    return contract;
   }
 
   ERC4337Config getPrimaryAccountAbstractionConfig() {
